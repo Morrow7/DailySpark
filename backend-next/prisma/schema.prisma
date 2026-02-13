@@ -1,0 +1,236 @@
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  phone     String?  @unique
+  email     String?  @unique
+  password  String
+  name      String?
+  avatar    String?
+  role      String   @default("user") // admin, user
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  words     Word[]
+  articles  Article[]
+  
+  // Membership & Payment
+  membership UserMembership?
+  orders     Order[]
+  
+  // Learning Stats
+  learningStats LearningStat[]
+  checkinLogs   CheckinLog[]
+  ranking       UserRanking?
+}
+
+model UserMembership {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  user           User     @relation(fields: [userId], references: [id])
+  planId         Int?     // Link to current plan
+  level          String   @default("free") // free, vip, svip
+  startTime      DateTime?
+  endTime        DateTime?
+  autoRenew      Boolean  @default(false)
+  lastRenewDate  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model LearningStat {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  date        DateTime @db.Date // Store just the date part
+  duration    Int      @default(0) // Minutes
+  courseCount Int      @default(0)
+  quizScore   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model CheckinLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  checkinDate DateTime @db.Date
+  continuousDays Int @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, checkinDate])
+}
+
+model UserRanking {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  weekStartDate DateTime @db.Date
+  totalDuration Int @default(0)
+  rankPosition Int?
+  updatedAt DateTime @updatedAt
+}
+
+model MembershipPlan {
+  id          Int      @id @default(autoincrement())
+  name        String   // e.g. "Monthly VIP"
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("CNY")
+  duration    Int      // Duration in days, e.g. 30
+  level       String   @default("vip") // Target level
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+}
+
+model Order {
+  id          String   @id @default(uuid()) // Order No.
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  planId      Int?
+  plan        MembershipPlan? @relation(fields: [planId], references: [id])
+  amount      Decimal  @db.Decimal(10, 2)
+  currency    String   @default("CNY")
+  status      String   @default("pending") // pending, paid, failed, refunded, closed
+  subject     String   // Order title
+  
+  paymentMethod String? // wechat, alipay
+  paymentTime   DateTime?
+  
+  payments    Payment[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id])
+  transactionId   String?  // External transaction ID (WeChat/Alipay)
+  channel         String   // wechat, alipay
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("CNY")
+  status          String   @default("pending") // pending, success, failed
+  rawResponse     String?  @db.Text // Store raw callback data for audit
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([transactionId])
+}
+
+model Word {
+  id           Int      @id @default(autoincrement())
+  word         String   // The English word
+  phonetic     String?
+  partOfSpeech String?
+  level        String?
+  
+  // Exam Flags (0 or 1)
+  upgrade_flag Int      @default(0)
+  cet4_flag    Int      @default(0)
+  cet6_flag    Int      @default(0)
+  ielts_flag   Int      @default(0)
+
+  // Extended Fields
+  phoneticUk   String?
+  phoneticUs   String?
+  audioUk      String?
+  audioUs      String?
+  rootAffix    String?  @db.Text // JSON or text description
+  mnemonicImg  String?
+  collocations String?  @db.Text // JSON string
+  cefrLevel    String?  // A1, A2, B1, B2, C1, C2
+
+  // Relations
+  meanings     Meaning[]
+  examples     Example[]
+  relations    WordRelation[] @relation("SourceWord")
+  relatedTo    WordRelation[] @relation("TargetWord")
+  
+  scenarioPacks ScenarioPack[]
+
+  // Metadata
+  userId       Int?     // Made optional for system words
+  user         User?    @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([word])
+  @@index([cefrLevel])
+}
+
+model ScenarioPack {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String   // Business, Academic, Travel...
+  coverImg    String?
+  level       String?  // Difficulty level
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  words       Word[]
+}
+
+model Meaning {
+  id        Int      @id @default(autoincrement())
+  wordId    Int
+  word      Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  definition String  @db.Text
+  language  String   @default("zh") // zh, en
+  createdAt DateTime @default(now())
+}
+
+model Example {
+  id        Int      @id @default(autoincrement())
+  wordId    Int
+  word      Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  sentence  String   @db.Text
+  translation String? @db.Text
+  createdAt DateTime @default(now())
+}
+
+model WordRelation {
+  id           Int      @id @default(autoincrement())
+  sourceWordId Int
+  targetWordId Int
+  type         String   // synonym, antonym
+  
+  sourceWord   Word     @relation("SourceWord", fields: [sourceWordId], references: [id], onDelete: Cascade)
+  targetWord   Word     @relation("TargetWord", fields: [targetWordId], references: [id], onDelete: Cascade)
+
+  @@index([sourceWordId])
+  @@index([targetWordId])
+}
+
+model Article {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.LongText
+  category  String?
+  level     String?
+  authorId  Int?
+  author    User?    @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
