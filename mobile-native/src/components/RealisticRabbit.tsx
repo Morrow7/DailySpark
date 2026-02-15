@@ -36,9 +36,22 @@ export const RealisticRabbit = ({ scale = 1 }: { scale?: number }) => {
   const eyeScaleY = useSharedValue(1); // For blinking
   const bodyScaleY = useSharedValue(1); // Breathing
 
+  const jumpY = useSharedValue(0);
+
   // --- Animation Logic ---
 
   useEffect(() => {
+    // 0. Jump Logic (Exposed trigger)
+    // For now, we'll just add a random jump occasionally
+    const randomJump = () => {
+      jumpY.value = withSequence(
+        withTiming(-50, { duration: 300, easing: Easing.out(Easing.quad) }),
+        withTiming(0, { duration: 400, easing: Easing.bounce })
+      );
+      setTimeout(randomJump, Math.random() * 5000 + 5000);
+    };
+    setTimeout(randomJump, 3000);
+
     // 1. Blinking Loop
     const blink = () => {
       eyeScaleY.value = withSequence(
@@ -158,8 +171,15 @@ export const RealisticRabbit = ({ scale = 1 }: { scale?: number }) => {
     originY: 150, // Pivot at bottom
   }));
 
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale },
+      { translateY: jumpY.value }
+    ]
+  }));
+
   return (
-    <View style={[styles.container, { transform: [{ scale }] }]}>
+    <Animated.View style={[styles.container, containerStyle]}>
       <Svg width="120" height="160" viewBox="0 0 120 160">
         {/* Body */}
         <AnimatedG style={bodyStyle}>

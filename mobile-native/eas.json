@@ -9,10 +9,18 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "cache": {
+        "key": "android-cache-v1",
+        "paths": ["/root/.gradle/caches", "/root/.gradle/wrapper"]
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "cache": {
+        "key": "android-cache-v1",
+        "paths": ["/root/.gradle/caches", "/root/.gradle/wrapper"]
+      }
     }
   },
   "submit": {

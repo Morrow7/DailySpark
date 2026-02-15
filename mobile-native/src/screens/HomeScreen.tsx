@@ -84,6 +84,12 @@ export default function HomeScreen() {
         <RealisticRabbit scale={1.2} />
       </View>
 
+      {/* Interactive Trigger */}
+      <View style={styles.interactionArea} onTouchEnd={() => {
+        // You could expose a ref from RealisticRabbit to trigger specific animations
+        // like a jump or a surprised look on tap
+      }} />
+
       {/* Welcome Text */}
       <View style={styles.welcomeBox}>
         <Text style={styles.welcomeText}>Good Morning!</Text>
@@ -125,6 +131,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: '15%',
     alignSelf: 'center',
+    zIndex: 10,
+  },
+  interactionArea: {
+    position: 'absolute',
+    bottom: '15%',
+    alignSelf: 'center',
+    width: 150,
+    height: 200,
+    zIndex: 20,
+    // backgroundColor: 'rgba(255,0,0,0.1)', // debug
   },
   welcomeBox: {
     position: 'absolute',
