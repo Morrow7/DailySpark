@@ -236,7 +236,7 @@ export const RealisticRabbit = ({ scale = 1 }: { scale?: number }) => {
         {/* Grass (Only visible when eating, attached to mouth conceptually but simplified here) */}
         {/* We could animate a piece of grass disappearing, but for now let's keep it simple */}
       </Svg>
-    </View>
+    </Animated.View>
   );
 };
 
