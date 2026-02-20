@@ -15,60 +15,87 @@ export async function POST(req: Request) {
     }
 
     // Exchange code for access token and openid
-    // Note: For mobile app login, the URL is slightly different than web
+    // https://developers.weixin.qq.com/doc/oplatform/Mobile_App/WeChat_Login/Development_Guide.html
     const wechatUrl = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${WECHAT_APP_ID}&secret=${WECHAT_APP_SECRET}&code=${code}&grant_type=authorization_code`;
     
-    // Mocking WeChat API response for development/demo purposes
-    // In production, uncomment the fetch call
-    /*
-    const response = await fetch(wechatUrl);
-    const data = await response.json();
-    if (data.errcode) {
-      return NextResponse.json({ error: data.errmsg }, { status: 400 });
-    }
-    const { openid, access_token } = data;
-    */
-    
-    // MOCK DATA for demonstration
-    const openid = `mock_openid_${code}`;
-    const access_token = 'mock_access_token';
+    let openid = '';
+    let unionid = '';
+    let accessToken = '';
+    let userInfo: any = {};
 
-    // Check if user exists
-    let user = await prisma.user.findUnique({
-      where: { wechatOpenId: openid },
+    // Use Mock if API credentials are not set or for dev/test codes
+    if (!WECHAT_APP_ID || code.startsWith('mock_')) {
+        console.log('Using Mock WeChat Login');
+        openid = `mock_openid_${code}`;
+        unionid = `mock_unionid_${code}`;
+        accessToken = 'mock_access_token';
+        userInfo = {
+            nickname: `WeChatUser_${code.substring(0, 4)}`,
+            headimgurl: 'https://img.icons8.com/color/48/000000/weixing.png',
+            sex: 1,
+            province: 'Guangdong',
+            city: 'Shenzhen',
+            country: 'CN',
+        };
+    } else {
+        // Real API Call
+        const response = await fetch(wechatUrl);
+        const data = await response.json();
+        
+        if (data.errcode) {
+            console.error('WeChat Token Error:', data);
+            return NextResponse.json({ error: `WeChat Error: ${data.errmsg}` }, { status: 400 });
+        }
+        
+        openid = data.openid;
+        unionid = data.unionid; // UnionID only available if configured
+        accessToken = data.access_token;
+
+        // Fetch User Info
+        const userInfoUrl = `https://api.weixin.qq.com/sns/userinfo?access_token=${accessToken}&openid=${openid}`;
+        const userInfoRes = await fetch(userInfoUrl);
+        const userInfoData = await userInfoRes.json();
+        
+        if (userInfoData.errcode) {
+             console.error('WeChat UserInfo Error:', userInfoData);
+             return NextResponse.json({ error: `WeChat UserInfo Error: ${userInfoData.errmsg}` }, { status: 400 });
+        }
+        userInfo = userInfoData;
+    }
+
+    // Check if user exists by UnionID (preferred) or OpenID
+    // Note: OpenID is specific to the App, UnionID is unique across Apps under same WeChat Open Platform account.
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+            { wechatUnionId: unionid ? unionid : undefined }, // Use undefined to ignore if null
+            { wechatOpenId: openid }
+        ]
+      },
+      include: {
+        membership: true
+      }
     });
 
     if (!user) {
       // Create new user
-      // We might need to fetch user info from WeChat using access_token and openid
-      /*
-      const userInfoUrl = `https://api.weixin.qq.com/sns/userinfo?access_token=${access_token}&openid=${openid}`;
-      const userInfoRes = await fetch(userInfoUrl);
-      const userInfo = await userInfoRes.json();
-      */
-     
-      // MOCK USER INFO
-      const userInfo = {
-        nickname: `WeChatUser_${code.substring(0, 4)}`,
-        headimgurl: 'https://img.icons8.com/color/48/000000/weixing.png',
-      };
-
-      // Generate a random password for the user (they won't use it, but schema requires it)
-      const randomPassword = Math.random().toString(36).slice(-8);
+      // Generate a random password for the user
+      const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
       user = await prisma.$transaction(async (tx) => {
          const newUser = await tx.user.create({
           data: {
             wechatOpenId: openid,
-            name: userInfo.nickname,
+            wechatUnionId: unionid || undefined,
+            name: userInfo.nickname || `User_${openid.substring(0, 6)}`,
             avatar: userInfo.headimgurl,
             password: hashedPassword,
             role: 'user',
           },
         });
         
-        // Initialize VIP record
+        // Initialize Membership record
         await tx.userMembership.create({
           data: {
             userId: newUser.id,
@@ -76,16 +103,38 @@ export async function POST(req: Request) {
           },
         });
         
-        return newUser;
+        // Refetch with membership
+        return await tx.user.findUnique({
+            where: { id: newUser.id },
+            include: { membership: true }
+        });
       });
+    } else {
+        // Update user info if needed (optional: keep sync with WeChat)
+        // For now, we only update if missing
+        if (!user.wechatUnionId && unionid) {
+            user = await prisma.user.update({
+                where: { id: user.id },
+                data: { wechatUnionId: unionid },
+                include: { membership: true }
+            });
+        }
     }
+    
+    if (!user) throw new Error("Failed to create or retrieve user");
 
     // Generate JWT
     const token = signToken({ userId: user.id, email: user.email });
     const refreshToken = signToken({ userId: user.id, type: 'refresh' }, '7d');
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, avatar: user.avatar, wechatOpenId: user.wechatOpenId },
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        avatar: user.avatar, 
+        wechatOpenId: user.wechatOpenId,
+        membership: user.membership
+      },
       token,
       refreshToken
     });

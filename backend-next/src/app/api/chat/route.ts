@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getAuth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 const DOUBAO_API_KEY = process.env.DOUBAO_API_KEY || process.env.EXPO_PUBLIC_DOUBAO_API_KEY;
 const DOUBAO_ENDPOINT = process.env.DOUBAO_ENDPOINT || process.env.EXPO_PUBLIC_DOUBAO_ENDPOINT || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
@@ -7,16 +8,32 @@ const DOUBAO_MODEL = process.env.DOUBAO_MODEL || process.env.EXPO_PUBLIC_DOUBAO_
 
 export async function POST(req: NextRequest) {
   try {
-    const user = getAuth(req);
-    if (!user) {
+    const auth = getAuth(req); // Returns { userId, ... } or null
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    const { messages } = body;
+    const { messages, type = 'text' } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
+    }
+
+    // Membership Check for Voice Chat
+    if (type === 'voice') {
+      const membership = await prisma.userMembership.findUnique({
+        where: { userId: auth.userId },
+      });
+
+      const isMember = membership && membership.level !== 'free' && (!membership.endTime || new Date(membership.endTime) > new Date());
+      
+      if (!isMember) {
+        return NextResponse.json({ 
+          code: 'VOICE_FORBIDDEN_NON_MEMBER', 
+          message: '您当前为非会员，无法使用电话语音聊天。开通会员以解锁语音通话。' 
+        }, { status: 403 });
+      }
     }
 
     // Call Doubao API

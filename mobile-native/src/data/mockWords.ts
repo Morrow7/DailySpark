@@ -24,7 +24,7 @@ export interface Word {
   ielts_flag?: number;
 }
 
-export const mockWords: Word[] = [
+const realWords: Word[] = [
   // 专升本
   {
     id: '1',
@@ -181,3 +181,37 @@ export const mockWords: Word[] = [
     roots: 'co- (together) + haerere (stick) -> 粘在一起'
   }
 ];
+
+// Generate 1000 dummy words
+const generateDummyWords = (): Word[] => {
+  const dummyWords: Word[] = [];
+  const levels: WordLevel[] = ['专升本', 'CET4', 'CET6', 'IELTS'];
+  
+  for (let i = 9; i <= 1000; i++) {
+    const level = levels[i % 4];
+    dummyWords.push({
+      id: i.toString(),
+      word: `word_${i}`,
+      phonetic_uk: `/wɜːd_${i}/`,
+      phonetic_us: `/wɜːrd_${i}/`,
+      part_of_speech: i % 2 === 0 ? 'n.' : 'v.',
+      meaning: `This is the meaning of word_${i}. It is a dummy word for testing.`,
+      level: level,
+      tags: ['test', level.toLowerCase()],
+      examples: [
+        { en: `Example sentence for word_${i}.`, cn: `单词_${i}的例句。` }
+      ],
+      synonyms: [],
+      antonyms: [],
+      roots: `root_${i}`,
+      // Randomly assign some flags
+      upgrade_flag: level === '专升本' ? 1 : 0,
+      cet4_flag: level === 'CET4' ? 1 : 0,
+      cet6_flag: level === 'CET6' ? 1 : 0,
+      ielts_flag: level === 'IELTS' ? 1 : 0,
+    });
+  }
+  return dummyWords;
+};
+
+export const mockWords: Word[] = [...realWords, ...generateDummyWords()];

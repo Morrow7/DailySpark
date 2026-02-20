@@ -26,6 +26,9 @@ export async function POST(req: Request) {
           phone ? { phone } : {},
         ],
       },
+      include: {
+        membership: true,
+      },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -37,7 +40,13 @@ export async function POST(req: Request) {
     const refreshToken = signToken({ userId: user.id, type: 'refresh' }, '7d');
 
     const response = NextResponse.json({
-      user: { id: user.id, email: user.email, phone: user.phone, name: user.name },
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        phone: user.phone, 
+        name: user.name,
+        membership: user.membership // Include membership info
+      },
       token,
       refreshToken
     });

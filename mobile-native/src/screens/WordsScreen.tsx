@@ -11,6 +11,8 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -28,12 +30,30 @@ import * as Speech from 'expo-speech';
 const LEVELS: WordLevel[] = ['专升本', 'CET4', 'CET6', 'IELTS'];
 
 export default function WordsScreen() {
+  const { width } = useWindowDimensions();
+  const numColumns = width > 1024 ? 4 : width > 768 ? 3 : width > 600 ? 2 : 1;
+  const gap = spacing.m;
+  const itemWidth = (width - (spacing.l * 2) - (gap * (numColumns - 1))) / numColumns;
+
   const [selectedLevels, setSelectedLevels] = useState<WordLevel[]>(['CET4']);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
   const [modalVisible, setModalVisible] = useState(false);
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [resultModalVisible, setResultModalVisible] = useState(false);
@@ -44,20 +64,35 @@ export default function WordsScreen() {
   // Load words on focus to sync with ReadingScreen updates
   useFocusEffect(
     useCallback(() => {
-      loadData();
+      loadData(false);
     }, [])
   );
 
-  const loadData = async () => {
-    setLoading(true);
-    const storedWords = await WordStorage.loadWords();
-    if (storedWords && storedWords.length > 0) {
-      setWords(storedWords);
-    } else {
-      setWords(mockWords);
-      await WordStorage.saveWords(mockWords);
+  const loadData = async (showLoading = true) => {
+    if (showLoading && words.length === 0) setLoading(true);
+
+    try {
+      let storedWords = await WordStorage.loadWords();
+
+      // Auto-hydrate only if storage is empty (first launch)
+      if (storedWords === null) {
+        console.log('Hydrating storage with mock words...');
+        await WordStorage.addWords(mockWords);
+        storedWords = await WordStorage.loadWords();
+      }
+
+      setWords(storedWords || []);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData(false);
   };
 
   const handleWordPress = (word: Word) => {
@@ -123,6 +158,7 @@ export default function WordsScreen() {
       Speech.speak(text, { language: 'en-US' });
     } catch (error) {
       console.warn('Speech error:', error);
+      Alert.alert('Speech Error', 'Failed to play pronunciation. Please try again.');
     }
   };
 
@@ -173,7 +209,7 @@ export default function WordsScreen() {
       }
 
       // Search filter
-      const q = searchQuery.toLowerCase();
+      const q = debouncedSearchQuery.toLowerCase();
       if (!q) return true;
       return (
         word.word.toLowerCase().includes(q) ||
@@ -191,54 +227,64 @@ export default function WordsScreen() {
     }
 
     return result;
-  }, [selectedLevels, searchQuery, words, groupMode]);
+  }, [selectedLevels, debouncedSearchQuery, words, groupMode]);
 
-  const renderItem = ({ item }: { item: Word }) => (
-    <TouchableOpacity
-      style={[styles.wordCard, item.isMastered && styles.masteredCard]}
-      onPress={() => handleWordPress(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardInner}>
-        <View style={styles.wordHeader}>
-          <Text style={[styles.wordText, item.isMastered && styles.masteredText]}>{item.word}</Text>
-          <View style={styles.actionsRow}>
-            <TouchableOpacity onPress={(e) => playPronunciation(item.word, e)} style={styles.iconBtn}>
-              <Ionicons name="volume-high-outline" size={20} color={palette.secondary} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={(e) => toggleFavorite(item, e)} style={styles.iconBtn}>
-              <Ionicons name={item.isFavorite ? "heart" : "heart-outline"} size={20} color={item.isFavorite ? palette.danger : palette.textLight} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={(e) => toggleMastered(item, e)} style={styles.iconBtn}>
-              <Ionicons name={item.isMastered ? "checkmark-circle" : "checkmark-circle-outline"} size={20} color={item.isMastered ? palette.success : palette.textLight} />
-            </TouchableOpacity>
+  const renderItem = ({ item, index }: { item: Word, index: number }) => {
+    const isLastInRow = (index + 1) % numColumns === 0;
+    return (
+      <TouchableOpacity
+        style={[
+          styles.wordCard,
+          item.isMastered && styles.masteredCard,
+          {
+            width: numColumns > 1 ? itemWidth : '100%',
+            marginRight: (numColumns > 1 && !isLastInRow) ? gap : 0
+          }
+        ]}
+        onPress={() => handleWordPress(item)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardInner}>
+          <View style={styles.wordHeader}>
+            <Text style={[styles.wordText, item.isMastered && styles.masteredText]}>{item.word}</Text>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity onPress={(e) => playPronunciation(item.word, e)} style={styles.iconBtn}>
+                <Ionicons name="volume-high-outline" size={20} color={palette.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={(e) => toggleFavorite(item, e)} style={styles.iconBtn}>
+                <Ionicons name={item.isFavorite ? "heart" : "heart-outline"} size={20} color={item.isFavorite ? palette.danger : palette.textLight} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={(e) => toggleMastered(item, e)} style={styles.iconBtn}>
+                <Ionicons name={item.isMastered ? "checkmark-circle" : "checkmark-circle-outline"} size={20} color={item.isMastered ? palette.success : palette.textLight} />
+              </TouchableOpacity>
+            </View>
           </View>
+
+          <View style={styles.phoneticRow}>
+            <View style={styles.phoneticContainer}>
+              <Text style={styles.phonetic}>US {item.phonetic_us}</Text>
+            </View>
+            <View style={styles.posTag}>
+              <Text style={styles.posText}>{item.part_of_speech}</Text>
+            </View>
+          </View>
+
+          <Text style={[styles.meaning, item.isMastered && styles.masteredText]} numberOfLines={2}>{item.meaning}</Text>
+
+          {item.examples && item.examples.length > 0 && (
+            <View style={styles.exampleBox}>
+              <Text style={styles.exampleText} numberOfLines={1}>
+                {item.examples[0].en}
+              </Text>
+              <Text style={styles.exampleCn} numberOfLines={1}>
+                {item.examples[0].cn}
+              </Text>
+            </View>
+          )}
         </View>
-
-        <View style={styles.phoneticRow}>
-          <View style={styles.phoneticContainer}>
-            <Text style={styles.phonetic}>US {item.phonetic_us}</Text>
-          </View>
-          <View style={styles.posTag}>
-            <Text style={styles.posText}>{item.part_of_speech}</Text>
-          </View>
-        </View>
-
-        <Text style={[styles.meaning, item.isMastered && styles.masteredText]} numberOfLines={2}>{item.meaning}</Text>
-
-        {item.examples && item.examples.length > 0 && (
-          <View style={styles.exampleBox}>
-            <Text style={styles.exampleText} numberOfLines={1}>
-              {item.examples[0].en}
-            </Text>
-            <Text style={styles.exampleCn} numberOfLines={1}>
-              {item.examples[0].cn}
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    )
+  };
 
   return (
     <RabbitBackground>
@@ -331,23 +377,30 @@ export default function WordsScreen() {
               <ActivityIndicator size="large" color={palette.primary} />
             </View>
           ) : (
-            <FlashList
-              data={filteredWords}
-              renderItem={renderItem}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              estimatedItemSize={200}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <View style={styles.emptyIconBg}>
-                    <Ionicons name="sparkles" size={40} color={palette.primary} />
+            <View style={{ flex: 1, paddingHorizontal: spacing.l }}>
+              <FlashList
+                data={filteredWords}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                contentContainerStyle={{ paddingBottom: spacing.xl * 2 }}
+                showsVerticalScrollIndicator={false}
+                estimatedItemSize={200}
+                numColumns={numColumns}
+                key={numColumns} // Force re-render when columns change
+                refreshControl={
+                  <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} />
+                }
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <View style={styles.emptyIconBg}>
+                      <Ionicons name="sparkles" size={40} color={palette.primary} />
+                    </View>
+                    <Text style={styles.emptyText}>No words found here~</Text>
+                    <Text style={styles.emptySubText}>Try importing or changing filters</Text>
                   </View>
-                  <Text style={styles.emptyText}>No words found here~</Text>
-                  <Text style={styles.emptySubText}>Try importing or changing filters</Text>
-                </View>
-              }
-            />
+                }
+              />
+            </View>
           )}
 
           {/* Modals */}

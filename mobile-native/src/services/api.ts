@@ -54,14 +54,25 @@ export const authApi = {
 };
 
 export const chatApi = {
-  sendMessage: async (messages: any[]) => {
+  sendMessage: async (messages: any[], type: 'text' | 'voice' = 'text') => {
     const headers = await getHeaders();
     const res = await fetch(`${API_URL}/chat`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, type }),
     });
-    return res.json();
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      // Propagate error with code/message
+      const error: any = new Error(data.message || 'Chat failed');
+      error.status = res.status;
+      error.code = data.code;
+      throw error;
+    }
+    
+    return data;
   }
 };
 

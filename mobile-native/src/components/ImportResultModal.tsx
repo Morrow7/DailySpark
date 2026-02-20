@@ -10,8 +10,6 @@ interface ImportResultModalProps {
   onClose: () => void;
 }
 
-const { width } = Dimensions.get('window');
-
 export default function ImportResultModal({ visible, result, onClose }: ImportResultModalProps) {
   if (!result) return null;
 
@@ -93,6 +91,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
+    maxWidth: 500,
     maxHeight: '80%',
     backgroundColor: '#fff',
     borderRadius: radius.xl,
@@ -102,6 +101,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 10,
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',

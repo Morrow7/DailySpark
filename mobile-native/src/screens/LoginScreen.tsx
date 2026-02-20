@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../navigation/types';
-import { authApi } from '../services/api';
+import { authApi, API_URL } from '../services/api';
 import { palette, spacing, radius } from '../theme';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -41,20 +41,57 @@ export default function LoginScreen() {
   };
 
   const handleWeChatLogin = async () => {
-    // In a real app, integrate react-native-wechat-lib
-    // For now, we'll mock the flow or show an alert
-    Alert.alert('WeChat Login', 'Native WeChat SDK integration required for production build.');
-    
-    /* Mock flow:
+    // In a real production app, you MUST integrate `react-native-wechat-lib`.
+    // Example flow:
+    // 1. WeChat.registerApp(APP_ID, universalLink);
+    // 2. WeChat.sendAuthRequest({ scope: 'snsapi_userinfo', state: '...' });
+    // 3. Receive code from callback.
+    // 4. Send code to backend.
+
+    setLoading(true);
     try {
-       const { code } = await WeChat.sendAuthRequest({ scope: 'snsapi_userinfo' });
-       const response = await fetch(`${API_URL}/auth/wechat`, {
+      // 1. GET CODE
+      // For DEMO purposes, we simulate getting a code. 
+      // In development, we can use a mock code to test the backend flow.
+      let code = '';
+      
+      if (__DEV__) {
+        // Mock code for testing
+        code = 'mock_wechat_code_' + Date.now();
+        console.log('Dev Mode: Using mock WeChat code:', code);
+        
+        // Optional: In real dev with physical device, you might want to try calling real WeChat if configured
+        // const isWeChatInstalled = await WeChat.isWXAppInstalled();
+      } else {
+        Alert.alert('Configuration Error', 'WeChat SDK not configured for production build.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. SEND TO BACKEND
+      const response = await fetch(`${API_URL}/auth/wechat`, {
          method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ code })
-       });
-       // ... handle response
-    } catch (e) { ... }
-    */
+      });
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'WeChat login failed');
+      }
+
+      // 3. HANDLE SUCCESS
+      await AsyncStorage.setItem('user_token', data.token);
+      await AsyncStorage.setItem('user_info', JSON.stringify(data.user));
+      navigation.replace('MainTabs');
+
+    } catch (error: any) {
+      console.error('WeChat Login Error', error);
+      Alert.alert('Login Failed', error.message || 'Could not login with WeChat');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

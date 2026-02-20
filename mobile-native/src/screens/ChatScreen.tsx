@@ -26,11 +26,16 @@ import {
 } from 'react-native-gifted-chat';
 import { Ionicons } from '@expo/vector-icons';
 import { ChatAudioBubble } from '../components/ChatAudioBubble';
+import PhoneCallModal from '../components/PhoneCallModal';
 import { v4 as uuidv4 } from 'uuid';
 import * as Speech from 'expo-speech';
 import { palette, radius, spacing } from '../theme';
 import { ChatStorage } from '../utils/storage';
 import { Audio } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGES = [
   { code: 'zh', name: 'Chinese' },
@@ -48,6 +53,7 @@ type Message = {
 };
 
 export default function ChatScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -62,6 +68,7 @@ export default function ChatScreen() {
   // Settings
   const [showSettings, setShowSettings] = useState(false);
   const [targetLang, setTargetLang] = useState(LANGUAGES[0]); // Default Chinese
+  const [showPhoneCall, setShowPhoneCall] = useState(false);
 
   // Voice animation
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -428,11 +435,75 @@ export default function ChatScreen() {
     />
   );
 
+  const handlePhoneMessages = (newMsgs: { role: 'user' | 'assistant', content: string }[]) => {
+    const giftedMsgs = newMsgs.map(msg => ({
+      _id: uuidv4(),
+      text: msg.content,
+      createdAt: new Date(),
+      user: {
+        _id: msg.role === 'user' ? 1 : 2,
+        name: msg.role === 'user' ? 'User' : 'Doubao AI',
+        avatar: msg.role === 'assistant' ? 'https://img.icons8.com/color/48/000000/bot.png' : undefined,
+      },
+    }));
+
+    const formattedMsgs = giftedMsgs.reverse(); // Newest first for GiftedChat
+
+    setMessages(previousMessages => GiftedChat.append(previousMessages, formattedMsgs));
+
+    // Add to history ref (newest first)
+    historyRef.current = [...formattedMsgs, ...historyRef.current];
+
+    // Persist to storage
+    const currentHistory = historyRef.current.map(m => ({
+      role: m.user._id === 1 ? 'user' : 'assistant',
+      content: m.text,
+    })).reverse(); // Oldest first for storage format usually
+    ChatStorage.saveHistory(currentHistory);
+  };
+
+  const handlePhoneCallPress = async () => {
+    // Check membership locally first (fast feedback)
+    try {
+      const userInfoStr = await AsyncStorage.getItem('user_info');
+      if (userInfoStr) {
+        const userInfo = JSON.parse(userInfoStr);
+        // Check if user has active membership
+        const isMember = userInfo.membership && 
+                         userInfo.membership.level !== 'free' && 
+                         (!userInfo.membership.endTime || new Date(userInfo.membership.endTime) > new Date());
+        
+        if (!isMember) {
+          Alert.alert(
+            '无法使用电话语音聊天',
+            '此功能为会员专属。开通会员即可使用电话语音聊天与普通文本聊天两项服务。',
+            [
+              { text: '知道了', style: 'cancel' },
+              { text: '去开通会员', onPress: () => navigation.navigate('Vip') }
+            ]
+          );
+          return;
+        }
+      } else {
+        // Not logged in or no info
+         Alert.alert('Please Login', 'You need to login to use this feature.');
+         return;
+      }
+    } catch (e) {
+      console.log('Error checking membership', e);
+    }
+    
+    setShowPhoneCall(true);
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.title}>AI Voice Chat</Text>
         <View style={styles.headerRight}>
+          <TouchableOpacity onPress={handlePhoneCallPress} style={{ marginRight: 16 }}>
+            <Ionicons name="call-outline" size={24} color={palette.primary} />
+          </TouchableOpacity>
           <View style={[styles.statusBadge, { marginRight: 8 }]}>
             <View style={[styles.statusDot, { backgroundColor: loading ? palette.warning : palette.success }]} />
             <Text style={styles.statusText}>{loading ? 'Thinking...' : 'Online'}</Text>
@@ -522,6 +593,13 @@ export default function ChatScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Phone Call Modal */}
+      <PhoneCallModal
+        visible={showPhoneCall}
+        onClose={() => setShowPhoneCall(false)}
+        onMessagesGenerated={handlePhoneMessages}
+      />
     </SafeAreaView>
   );
 }
