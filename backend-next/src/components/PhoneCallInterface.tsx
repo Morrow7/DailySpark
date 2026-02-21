@@ -136,7 +136,7 @@ export default function PhoneCallInterface({ onClose, userName = "Doubao AI", av
             className={`p-4 rounded-full transition-all duration-300 flex flex-col items-center gap-2 ${isMuted ? 'bg-white text-gray-900' : 'bg-transparent text-white hover:bg-white/10'}`}
           >
             {isMuted ? <MicOff size={28} /> : <Mic size={28} />}
-            <span className="text-[10px] font-bold uppercase tracking-wider">Mute</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">静音</span>
           </button>
 
           {/* End Call */}

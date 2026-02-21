@@ -1,99 +1,96 @@
 'use client'
 import Link from "next/link";
-import RabbitBackground from "@/components/RabbitBackground";
-import { BookOpen, List, MessageCircle, Sparkles, User, Crown } from "lucide-react";
+import { BookOpen, MessageCircle, TrendingUp, Coffee } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <RabbitBackground>
-        <div className="max-w-4xl mx-auto px-6 py-12 relative z-10">
-          <div className="text-center mb-16 animate-float">
-            <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-4">
-              DailySpark
-            </h1>
-            <p className="text-gray-500 text-lg md:text-xl font-medium tracking-wide">
-              词汇 · 阅读 · 聊天 · 成长
-            </p>
-          </div>
+    <div className="min-h-screen bg-[#FDFBF7] p-6 pb-24">
+      <div className="max-w-md mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-2 py-8">
+          <h1 className="text-4xl font-extrabold text-cheese-800 tracking-tight">
+            Daily Spark
+          </h1>
+          <p className="text-cheese-600 font-medium">
+            用英语探索广阔世界
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            <Card 
-              title="单词" 
-              href="/words" 
-              icon={List} 
-              color="text-blue-500" 
-              bg="bg-blue-50"
-              desc="记忆与复习"
-            />
-            <Card 
-              title="阅读" 
-              href="/reading" 
-              icon={BookOpen} 
-              color="text-green-500" 
-              bg="bg-green-50"
-              desc="精选双语文章"
-            />
-            <Card 
-              title="聊天" 
-              href="/chat" 
-              icon={MessageCircle} 
-              color="text-blue-400" 
-              bg="bg-blue-50"
-              desc="AI 口语教练"
-            />
-            <Card 
-              title="我的" 
-              href="/mine" 
-              icon={User} 
-              color="text-pink-500" 
-              bg="bg-pink-50"
-              desc="数据与成就"
-            />
-            <Card 
-              title="会员" 
-              href="/vip" 
-              icon={Crown} 
-              color="text-amber-500" 
-              bg="bg-amber-50"
-              desc="解锁高级功能"
-            />
-          </div>
-          
-          <div className="mt-12 text-center text-sm text-gray-400 font-light">
-             Explore the world with English
+        {/* Main Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <Link
+            href="/words"
+            className="group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border-2 border-orange-100 hover:border-orange-300 transition-all hover:shadow-md hover:-translate-y-1"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <BookOpen size={48} className="text-orange-500" />
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center mb-4 text-orange-600 group-hover:scale-110 transition-transform">
+              <BookOpen size={24} fill="currentColor" />
+            </div>
+            <h3 className="font-bold text-gray-800 text-lg mb-1">每日单词</h3>
+            <p className="text-xs text-gray-400 font-medium">积累核心词汇</p>
+          </Link>
+
+          <Link
+            href="/reading"
+            className="group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border-2 border-green-100 hover:border-green-300 transition-all hover:shadow-md hover:-translate-y-1"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Coffee size={48} className="text-green-500" />
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4 text-green-600 group-hover:scale-110 transition-transform">
+              <Coffee size={24} fill="currentColor" />
+            </div>
+            <h3 className="font-bold text-gray-800 text-lg mb-1">精选阅读</h3>
+            <p className="text-xs text-gray-400 font-medium">地道文章精读</p>
+          </Link>
+
+          <Link
+            href="/chat"
+            className="group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border-2 border-blue-100 hover:border-blue-300 transition-all hover:shadow-md hover:-translate-y-1"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <MessageCircle size={48} className="text-blue-500" />
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-4 text-blue-600 group-hover:scale-110 transition-transform">
+              <MessageCircle size={24} fill="currentColor" />
+            </div>
+            <h3 className="font-bold text-gray-800 text-lg mb-1">AI 对话</h3>
+            <p className="text-xs text-gray-400 font-medium">口语实战演练</p>
+          </Link>
+
+          <Link
+            href="/mine"
+            className="group relative overflow-hidden bg-white p-6 rounded-3xl shadow-sm border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-md hover:-translate-y-1"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <TrendingUp size={48} className="text-purple-500" />
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-4 text-purple-600 group-hover:scale-110 transition-transform">
+              <TrendingUp size={24} fill="currentColor" />
+            </div>
+            <h3 className="font-bold text-gray-800 text-lg mb-1">成长统计</h3>
+            <p className="text-xs text-gray-400 font-medium">查看学习进度</p>
+          </Link>
+        </div>
+
+        {/* Daily Quote - Placeholder for dynamic content */}
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cheese-400 to-orange-400"></div>
+          <div className="flex items-start gap-4">
+            <div className="text-4xl text-cheese-300 font-serif">"</div>
+            <div className="flex-1">
+              <p className="text-gray-600 italic font-serif text-lg leading-relaxed mb-2">
+                The limits of my language mean the limits of my world.
+              </p>
+              <p className="text-gray-400 text-sm font-medium text-right">
+                — Ludwig Wittgenstein
+              </p>
+            </div>
           </div>
         </div>
-      </RabbitBackground>
-    </div>
-  );
-}
-
-function Card({ 
-  title, 
-  href, 
-  icon: Icon, 
-  color, 
-  bg,
-  desc 
-}: { 
-  title: string; 
-  href: string; 
-  icon: any; 
-  color: string; 
-  bg: string;
-  desc: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="glass-card group p-6 rounded-3xl hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col items-center text-center border-white/60"
-    >
-      <div className={`w-16 h-16 rounded-2xl ${bg} ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-        <Icon size={32} />
       </div>
-      <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
-      <p className="text-xs text-gray-400 font-medium">{desc}</p>
-    </Link>
+    </div>
   );
 }

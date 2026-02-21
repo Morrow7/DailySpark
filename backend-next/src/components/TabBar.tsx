@@ -18,7 +18,7 @@ export default function TabBar() {
   if (pathname === '/login') return null;
 
   return (
-    <nav className={`${styles.nav} md:hidden`}>
+    <nav className={styles.nav}>
       {items.map(({ href, label, icon: Icon }) => {
         const active = pathname?.startsWith(href);
         return (

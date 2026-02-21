@@ -1,196 +1,214 @@
-'use client'
-import { useEffect, useMemo, useState } from "react";
-import { apiFetch } from "@/lib/request";
-import { getToken } from "@/lib/clientAuth";
-import { Search, Upload, Volume2, Star } from "lucide-react";
-import WordDetailModal, { Word } from "@/components/WordDetailModal";
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Volume2, MoreVertical, Plus, FileUp, Filter, CheckCircle, BookOpen } from 'lucide-react';
+import WordDetailModal, { Word } from '@/components/WordDetailModal';
+import { apiFetch } from '@/lib/request';
+
+// Extend Word type for UI state (mocking progress/status)
+interface WordWithStatus extends Word {
+  status?: 'new' | 'learning' | 'review' | 'mastered';
+  progress?: number; // 0-100
+}
 
 export default function WordsPage() {
-  const [words, setWords] = useState<Word[]>([]);
-  const [q, setQ] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [words, setWords] = useState<WordWithStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [selectedWord, setSelectedWord] = useState<WordWithStatus | null>(null);
+  const [filter, setFilter] = useState<'all' | 'new' | 'learning' | 'review' | 'mastered'>('all');
 
-  const load = async () => {
+  useEffect(() => {
+    loadWords();
+  }, []);
+
+  const loadWords = () => {
     setLoading(true);
-    setError(null);
-    try {
-      const data = await apiFetch("/api/words");
-      setWords(data);
-    } catch (e: any) {
-      setError(e.message || "加载失败");
-    } finally {
+    // Try to load from local storage first for speed
+    const cached = localStorage.getItem('vocab_words');
+    if (cached) {
+      setWords(JSON.parse(cached));
       setLoading(false);
+    }
+
+    apiFetch('/api/vocabulary?page=1&limit=50')
+      .then(res => {
+        // Mocking status/progress for demo
+        const enhancedWords = res.words.map((w: Word) => ({
+          ...w,
+          status: ['new', 'learning', 'review', 'mastered'][Math.floor(Math.random() * 4)],
+          progress: Math.floor(Math.random() * 100)
+        }));
+        setWords(enhancedWords);
+        localStorage.setItem('vocab_words', JSON.stringify(enhancedWords));
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  const filteredWords = useMemo(() => {
+    return words.filter(w => {
+      const matchesSearch = w.word.toLowerCase().includes(search.toLowerCase()) ||
+        w.meaning?.includes(search);
+      const matchesFilter = filter === 'all' || w.status === filter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [words, search, filter]);
+
+  const playAudio = (e: React.MouseEvent, word: string) => {
+    e.stopPropagation();
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'new': return 'bg-blue-100 text-blue-600';
+      case 'learning': return 'bg-yellow-100 text-yellow-600';
+      case 'review': return 'bg-orange-100 text-orange-600';
+      case 'mastered': return 'bg-green-100 text-green-600';
+      default: return 'bg-gray-100 text-gray-500';
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
-
-  const filtered = useMemo(() => {
-    if (!q) return words;
-    const s = q.toLowerCase();
-    return words.filter(
-      (w) =>
-        w.word.toLowerCase().includes(s) ||
-        w.meanings?.some((m) => m.definition.toLowerCase().includes(s)) ||
-        w.meaning?.toLowerCase().includes(s)
-    );
-  }, [q, words]);
-
-  const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const token = getToken();
-      const res = await fetch("/api/words/import", {
-        method: "POST",
-        body: fd,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "导入失败");
-      await load();
-      alert(`导入完成：成功 ${data.imported}，重复 ${data.duplicates}，失败 ${data.failed}`);
-    } catch (e: any) {
-      setError(e.message || "导入失败");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case 'new': return '新词';
+      case 'learning': return '学习中';
+      case 'review': return '复习';
+      case 'mastered': return '已掌握';
+      default: return '未知';
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 mb-24 md:mb-8">
-      {/* Header Area */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-        <div>
-          <h1 className="text-4xl font-extrabold text-cheese-title mb-2 tracking-tight">Vocabulary</h1>
-          <p className="text-gray-500 font-medium">
-            Master your words, one slice at a time 🧀
-            <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-bold">
-              {words.length} Words
-            </span>
-          </p>
-        </div>
-        <div className="flex gap-3 w-full md:w-auto">
-            <label className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 cheese-btn-primary cursor-pointer active:scale-95 select-none">
-            {uploading ? (
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-            ) : (
-                <Upload size={18} strokeWidth={3} />
-            )}
-            Import Words
-            <input type="file" onChange={onImport} accept=".xlsx,.xls,.csv,.json" className="hidden" />
-            </label>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="sticky top-2 z-20 mb-8 px-1">
-        <div className="relative group max-w-2xl mx-auto md:mx-0 shadow-sm rounded-2xl">
-          <div className="absolute left-5 top-4 text-gray-400 group-focus-within:text-yellow-500 transition-colors">
-            <Search size={22} strokeWidth={2.5} />
+    <div className="max-w-3xl mx-auto px-4 pb-24 md:pb-12 min-h-screen">
+      {/* Header */}
+      <div className="pt-8 mb-6 sticky top-0 z-20 bg-[#fffcf5]/90 backdrop-blur-md -mx-4 px-4 border-b border-gray-100/50 pb-4">
+        <div className="flex justify-between items-end mb-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 font-heading tracking-tight">我的单词本</h1>
+            <p className="text-sm text-gray-500 font-medium mt-1">
+              累计词汇 <span className="text-yellow-500 font-bold text-lg">{words.length}</span>
+            </p>
           </div>
-          <input
-            placeholder="Search for a word..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 pl-14 pr-4 outline-none focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 transition-all text-gray-700 placeholder:text-gray-300 font-bold text-lg shadow-sm"
-          />
+          <button className="p-2 bg-white rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-yellow-600 transition-colors">
+            <FileUp size={20} />
+          </button>
+        </div>
+
+        {/* Search & Filter */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="搜索单词..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-white rounded-2xl border-2 border-gray-100 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 transition-all outline-none font-bold text-gray-700 placeholder-gray-300 shadow-sm"
+            />
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {['all', 'new', 'learning', 'review', 'mastered'].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f as any)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${filter === f
+                    ? 'bg-yellow-400 text-white border-yellow-400 shadow-md shadow-yellow-200'
+                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                  }`}
+              >
+                {f === 'all' ? '全部' : getStatusLabel(f)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 text-red-500 font-bold text-sm py-4 px-6 rounded-2xl flex items-center mb-8 border-2 border-red-100 animate-pulse">
-          <span className="mr-2 text-xl">⚠️</span> {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-            <div key={i} className="h-40 bg-white rounded-[24px] animate-pulse border-2 border-gray-100" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map((w: any) => (
+      {/* Word List */}
+      <div className="space-y-3 animate-slide-up">
+        {loading ? (
+          // Skeletons
+          [1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 h-24 animate-pulse" />
+          ))
+        ) : filteredWords.length > 0 ? (
+          filteredWords.map((word) => (
             <div
-              key={w.id}
-              onClick={() => {
-                setSelectedWord(w);
-                setModalVisible(true);
-              }}
-              className="cheese-card relative p-5 cursor-pointer group flex flex-col h-full min-h-[160px]"
+              key={word.id}
+              onClick={() => setSelectedWord(word)}
+              className="group bg-white p-4 rounded-2xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-gray-50 hover:border-yellow-200 hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
             >
-              {/* Top Row: Word & Sound */}
-              <div className="flex justify-between items-start mb-1">
-                <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight leading-tight group-hover:text-yellow-600 transition-colors">
-                  {w.word}
-                </h3>
-                <button 
-                  className="p-2 -mr-2 -mt-2 text-gray-300 hover:text-yellow-500 hover:bg-yellow-50 rounded-full transition-colors z-10"
-                  onClick={(e) => { e.stopPropagation(); /* play sound */ }}
-                >
-                  <Volume2 size={20} strokeWidth={2.5} />
-                </button>
-              </div>
+              {/* Progress Bar (Background) */}
+              <div
+                className="absolute bottom-0 left-0 h-1 bg-yellow-400 opacity-20 transition-all duration-500"
+                style={{ width: `${word.progress}%` }}
+              />
 
-              {/* Phonetic & Tags */}
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                 <span className="text-sm font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">
-                   {w.phonetic_us || w.phonetic_uk || '/.../'}
-                 </span>
-                 {w.partOfSpeech && (
-                    <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg uppercase tracking-wider border border-blue-100">
-                      {w.partOfSpeech}
-                    </span>
-                 )}
-              </div>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-black text-gray-800 group-hover:text-yellow-600 transition-colors">
+                      {word.word}
+                    </h3>
+                    {word.status && (
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${getStatusColor(word.status)}`}>
+                        {getStatusLabel(word.status)}
+                      </span>
+                    )}
+                  </div>
 
-              {/* Divider */}
-              <div className="h-0.5 w-10 bg-gray-100 rounded-full mb-3 group-hover:w-full group-hover:bg-yellow-200 transition-all duration-300" />
+                  <div className="flex items-center gap-2 text-sm text-gray-400 mb-2 font-mono">
+                    <span>/{word.phonetic || word.phonetic_us}/</span>
+                    <button
+                      onClick={(e) => playAudio(e, word.word)}
+                      className="p-1 hover:bg-yellow-50 rounded-full text-yellow-500 transition-colors"
+                    >
+                      <Volume2 size={14} strokeWidth={2.5} />
+                    </button>
+                  </div>
 
-              {/* Meaning (Bottom) */}
-              <div className="mt-auto">
-                <p className="text-base font-bold text-gray-600 line-clamp-2 leading-snug">
-                  {w.meanings?.[0]?.definition || w.meaning || "No definition"}
-                </p>
-              </div>
-              
-              {/* Decorative Circle */}
-              <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-yellow-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-0" />
-            </div>
-          ))}
-          
-          {filtered.length === 0 && !loading && (
-             <div className="col-span-full flex flex-col items-center justify-center py-32 text-gray-400">
-                <div className="w-24 h-24 bg-yellow-50 rounded-full flex items-center justify-center mb-6 animate-float">
-                    <Search size={40} className="text-yellow-300" strokeWidth={3} />
+                  <p className="text-sm text-gray-600 font-medium line-clamp-1">
+                    {word.meaning || word.definition}
+                  </p>
                 </div>
-                <p className="font-bold text-lg text-gray-300">No words found matching "{q}"</p>
-             </div>
-          )}
-        </div>
-      )}
-      
-      <WordDetailModal 
-        visible={modalVisible} 
-        word={selectedWord} 
-        onClose={() => setModalVisible(false)} 
-        onToggleFavorite={(w) => {
-           alert('Added to favorites (Mock)');
-        }}
+
+                <div className="flex flex-col items-end gap-2">
+                  {/* Mock "Mastered" Check */}
+                  {word.status === 'mastered' && (
+                    <CheckCircle size={18} className="text-green-500" />
+                  )}
+                  <button className="p-2 text-gray-300 hover:text-gray-500 transition-colors">
+                    <MoreVertical size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-20 text-gray-400">
+            <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
+            <p>暂无单词</p>
+            <button className="mt-4 px-6 py-2 bg-yellow-400 text-white font-bold rounded-full text-sm shadow-lg shadow-yellow-200">
+              导入词表
+            </button>
+          </div>
+        )}
+      </div>
+
+      <WordDetailModal
+        visible={!!selectedWord}
+        word={selectedWord}
+        onClose={() => setSelectedWord(null)}
       />
+
+      {/* Floating Action Button */}
+      <button className="fixed bottom-24 right-6 md:bottom-12 md:right-12 w-14 h-14 bg-gray-900 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30">
+        <Plus size={28} />
+      </button>
     </div>
   );
 }

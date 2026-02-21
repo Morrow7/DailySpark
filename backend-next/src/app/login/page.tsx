@@ -20,11 +20,11 @@ export default function LoginPage() {
         method: "POST",
       });
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.error || "微信授权失败");
-      
+
       setToken(data.token);
-      
+
       // Store user info
       if (typeof window !== 'undefined') {
         localStorage.setItem('user_info', JSON.stringify(data.user));
@@ -38,14 +38,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-cheese-50 via-white to-orange-50">
       <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 border border-white text-center">
         <div className="mb-10">
-          <div className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-4xl shadow-sm">
+          <div className="w-20 h-20 bg-cheese-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-4xl shadow-sm text-cheese-600">
             💬
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-500">Log in with WeChat to continue</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">欢迎回来</h1>
+          <p className="text-gray-500">请使用微信登录以继续</p>
         </div>
 
         <div className="space-y-6">
@@ -61,17 +61,17 @@ export default function LoginPage() {
             className="w-full bg-[#07C160] hover:bg-[#06ad56] text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed group"
           >
             {loading ? (
-              "Connecting..."
+              "正在连接..."
             ) : (
               <>
-                <span className="text-xl">WeChat Login</span> 
+                <span className="text-xl">微信一键登录</span>
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
-          
+
           <p className="text-xs text-gray-400 mt-4">
-            By logging in, you agree to our Terms of Service and Privacy Policy.
+            登录即代表您同意我们的服务条款和隐私政策。
           </p>
         </div>
       </div>
