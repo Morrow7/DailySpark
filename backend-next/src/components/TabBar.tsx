@@ -15,8 +15,10 @@ const items = [
 
 export default function TabBar() {
   const pathname = usePathname();
+  if (pathname === '/login') return null;
+
   return (
-    <nav className={styles.nav}>
+    <nav className={`${styles.nav} md:hidden`}>
       {items.map(({ href, label, icon: Icon }) => {
         const active = pathname?.startsWith(href);
         return (

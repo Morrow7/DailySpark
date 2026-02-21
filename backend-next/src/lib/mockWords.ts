@@ -8,7 +8,7 @@ export interface Word {
   part_of_speech: string;
   meaning: string;
   level: WordLevel;
-  tags: string[]; // e.g., 'noun', 'verb', 'difficult'
+  tags: string[]; 
   examples: { en: string; cn: string }[];
   synonyms: string[];
   antonyms: string[];
@@ -22,6 +22,9 @@ export interface Word {
   cet4_flag?: number;
   cet6_flag?: number;
   ielts_flag?: number;
+  // Frequency
+  frequency?: number;
+  exam_frequency?: number;
 }
 
 const realWords: Word[] = [
@@ -38,7 +41,9 @@ const realWords: Word[] = [
     cet4_flag: 1,
     cet6_flag: 0,
     ielts_flag: 0,
-    tags: ['verb', 'negative'],
+    frequency: 98,
+    exam_frequency: 15,
+    tags: ['verb', 'negative', 'high-frequency'],
     examples: [
       { en: 'He claimed that his parents had abandoned him.', cn: '他声称父母遗弃了他。' },
       { en: 'They had to abandon the car.', cn: '他们不得不弃车而去。' },
@@ -56,7 +61,13 @@ const realWords: Word[] = [
     part_of_speech: 'n.',
     meaning: '能力；本领；才能',
     level: '专升本',
-    tags: ['noun'],
+    upgrade_flag: 1,
+    cet4_flag: 1,
+    cet6_flag: 0,
+    ielts_flag: 0,
+    frequency: 95,
+    exam_frequency: 12,
+    tags: ['noun', 'basic'],
     examples: [
       { en: 'She has the ability to pass the exam.', cn: '她有能力通过考试。' },
       { en: 'He is a man of great ability.', cn: '他是一个非常有才能的人。' },
@@ -66,129 +77,62 @@ const realWords: Word[] = [
     antonyms: ['inability'],
     roots: 'able (capable) + -ity (noun suffix)'
   },
-  
-  // CET4
   {
     id: '3',
-    word: 'campus',
-    phonetic_uk: '/ˈkæmpəs/',
-    phonetic_us: '/ˈkæmpəs/',
-    part_of_speech: 'n.',
-    meaning: '校园，校区',
-    level: 'CET4',
-    tags: ['noun', 'school'],
+    word: 'absolute',
+    phonetic_uk: '/ˈæbsəluːt/',
+    phonetic_us: '/ˈæbsəluːt/',
+    part_of_speech: 'adj.',
+    meaning: '绝对的；完全的',
+    level: '专升本',
+    upgrade_flag: 1,
+    cet4_flag: 1,
+    cet6_flag: 0,
+    ielts_flag: 0,
+    frequency: 88,
+    exam_frequency: 8,
+    tags: ['adjective'],
     examples: [
-      { en: 'I live on campus.', cn: '我住在校内。' },
-      { en: 'The university has a beautiful campus.', cn: '这所大学有一个美丽的校园。' },
-      { en: 'Campus life is exciting.', cn: '校园生活很精彩。' }
+      { en: 'I have absolute confidence in her.', cn: '我对她有绝对的信心。' },
+      { en: 'There is no absolute standard for beauty.', cn: '美没有绝对的标准。' }
     ],
-    synonyms: ['grounds', 'university'],
-    antonyms: [],
-    roots: 'camp (field) -> 场地 -> 校园'
+    synonyms: ['complete', 'total', 'perfect'],
+    antonyms: ['relative'],
+    roots: 'ab- (away) + solvere (loosen) -> 没有任何束缚 -> 绝对的'
   },
   {
     id: '4',
-    word: 'decade',
-    phonetic_uk: '/ˈdekeɪd/',
-    phonetic_us: '/ˈdekeɪd/',
-    part_of_speech: 'n.',
-    meaning: '十年，十年期',
-    level: 'CET4',
-    tags: ['noun', 'time'],
-    examples: [
-      { en: 'Prices have risen steadily over the last decade.', cn: '过去十年物价稳步上涨。' },
-      { en: 'He has worked here for a decade.', cn: '他在这里工作了十年。' },
-      { en: 'The 1960s was a decade of change.', cn: '20世纪60年代是变革的十年。' }
-    ],
-    synonyms: [],
-    antonyms: [],
-    roots: 'deca (ten) -> 十'
-  },
-
-  // CET6
-  {
-    id: '5',
-    word: 'abnormal',
-    phonetic_uk: '/æbˈnɔːml/',
-    phonetic_us: '/æbˈnɔːrml/',
+    word: 'academic',
+    phonetic_uk: '/ˌækəˈdemɪk/',
+    phonetic_us: '/ˌækəˈdemɪk/',
     part_of_speech: 'adj.',
-    meaning: '反常的，异常的',
-    level: 'CET6',
-    tags: ['adjective'],
+    meaning: '学术的；学院的；理论的',
+    level: '专升本',
+    upgrade_flag: 1,
+    cet4_flag: 1,
+    cet6_flag: 1,
+    ielts_flag: 1,
+    frequency: 92,
+    exam_frequency: 20,
+    tags: ['adjective', 'education'],
     examples: [
-      { en: 'It is abnormal for the temperature to be this high in winter.', cn: '冬天温度这么高是不正常的。' },
-      { en: 'They found abnormal cells in the sample.', cn: '他们在样本中发现了异常细胞。' },
-      { en: 'His behavior was considered abnormal.', cn: '他的行为被认为是反常的。' }
+      { en: 'The university has a high academic reputation.', cn: '这所大学有很高的学术声誉。' },
+      { en: 'The question is purely academic.', cn: '这个问题纯粹是理论上的。' }
     ],
-    synonyms: ['unusual', 'irregular', 'anomalous'],
-    antonyms: ['normal', 'typical'],
-    roots: 'ab- (away) + normal (rule) -> 偏离规则 -> 异常'
+    synonyms: ['scholarly', 'educational'],
+    antonyms: ['practical'],
+    roots: 'academy (school) + -ic'
   },
-  {
-    id: '6',
-    word: 'bulletin',
-    phonetic_uk: '/ˈbʊlətɪn/',
-    phonetic_us: '/ˈbʊlətɪn/',
-    part_of_speech: 'n.',
-    meaning: '公告，公报；新闻简报',
-    level: 'CET6',
-    tags: ['noun', 'media'],
-    examples: [
-      { en: 'Here is the latest news bulletin.', cn: '这是最新的新闻简报。' },
-      { en: 'The company issued a bulletin to all employees.', cn: '公司向所有员工发布了公告。' },
-      { en: 'A medical bulletin on the President’s health.', cn: '关于总统健康的医疗公报。' }
-    ],
-    synonyms: ['report', 'announcement', 'statement'],
-    antonyms: [],
-    roots: 'bulla (seal) -> 公文 -> 公告'
-  },
-
-  // IELTS
-  {
-    id: '7',
-    word: 'accommodate',
-    phonetic_uk: '/əˈkɒmədeɪt/',
-    phonetic_us: '/əˈkɑːmədeɪt/',
-    part_of_speech: 'v.',
-    meaning: '容纳；向…提供住处；适应',
-    level: 'IELTS',
-    tags: ['verb'],
-    examples: [
-      { en: 'The hotel can accommodate up to 500 guests.', cn: '这家酒店最多可容纳500位客人。' },
-      { en: 'We need to accommodate the needs of all students.', cn: '我们需要适应所有学生的需求。' },
-      { en: 'He bought a huge house to accommodate his library.', cn: '他买了一栋大房子来安放他的藏书。' }
-    ],
-    synonyms: ['house', 'fit', 'adapt'],
-    antonyms: ['reject'],
-    roots: 'ad- (to) + commodus (suitable) -> 使适合 -> 容纳'
-  },
-  {
-    id: '8',
-    word: 'cohere',
-    phonetic_uk: '/kəʊˈhɪə(r)/',
-    phonetic_us: '/kəʊˈhɪr/',
-    part_of_speech: 'v.',
-    meaning: '连贯；一致；粘合',
-    level: 'IELTS',
-    tags: ['verb', 'abstract'],
-    examples: [
-      { en: 'The various parts of the theory do not cohere.', cn: '该理论的各个部分不连贯。' },
-      { en: 'This view does not cohere with their other beliefs.', cn: '这一观点与他们的其他信仰不一致。' },
-      { en: 'The particles cohere to form a solid mass.', cn: '微粒粘合形成固体块。' }
-    ],
-    synonyms: ['stick together', 'unite', 'bind'],
-    antonyms: ['separate', 'fall apart'],
-    roots: 'co- (together) + haerere (stick) -> 粘在一起'
-  }
+  // ... (Assuming more words imported)
 ];
 
-// Generate 1000 dummy words
+// Generate more dummy words to simulate "all" vocabulary
 const generateDummyWords = (): Word[] => {
   const dummyWords: Word[] = [];
   const levels: WordLevel[] = ['专升本', 'CET4', 'CET6', 'IELTS'];
   
-  for (let i = 9; i <= 1000; i++) {
-    const level = levels[i % 4];
+  for (let i = 5; i <= 3500; i++) {
+    const level = '专升本'; // Focus on Zhuan Sheng Ben
     dummyWords.push({
       id: i.toString(),
       word: `word_${i}`,
@@ -197,18 +141,16 @@ const generateDummyWords = (): Word[] => {
       part_of_speech: i % 2 === 0 ? 'n.' : 'v.',
       meaning: `This is the meaning of word_${i}. It is a dummy word for testing.`,
       level: level,
+      upgrade_flag: 1,
+      frequency: Math.floor(Math.random() * 100),
+      exam_frequency: Math.floor(Math.random() * 10),
       tags: ['test', level.toLowerCase()],
       examples: [
         { en: `Example sentence for word_${i}.`, cn: `单词_${i}的例句。` }
       ],
       synonyms: [],
       antonyms: [],
-      roots: `root_${i}`,
-      // Randomly assign some flags
-      upgrade_flag: level === '专升本' ? 1 : 0,
-      cet4_flag: level === 'CET4' ? 1 : 0,
-      cet6_flag: level === 'CET6' ? 1 : 0,
-      ielts_flag: level === 'IELTS' ? 1 : 0,
+      roots: `root_${i}`
     });
   }
   return dummyWords;

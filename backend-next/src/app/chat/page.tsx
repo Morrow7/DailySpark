@@ -131,30 +131,18 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      // Mock API call or Real API call
-      // const res = await apiFetch('/api/chat', { ... });
-      
-      // Simulate response for now as /api/chat might not be fully configured with keys
-      // But let's try to fetch if we can
-      let replyText = "I'm a demo bot. I can hear you!";
-      
-      try {
-        const res = await apiFetch('/api/chat', {
-          method: 'POST',
-          body: JSON.stringify({
-            messages: [{ role: 'user', content: text }]
-          })
-        });
-        if (res.reply) {
-          replyText = res.reply;
-        } else if (res.error) {
-           replyText = `Error: ${res.error}`;
-        }
-      } catch (e) {
-        // Fallback mock
-        setTimeout(() => {}, 1000);
-        replyText = `I heard you say: "${text}". (Backend not connected or failed)`;
-      }
+      // Use the updated Doubao-integrated API
+      const res = await apiFetch('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          messages: messages.concat(userMsg).map(m => ({
+            role: m.user._id === 1 ? 'user' : 'assistant',
+            content: m.text
+          })).slice(-10) // Send context
+        })
+      });
+
+      const replyText = res.reply || "Sorry, I didn't get that.";
 
       const botMsg: Message = {
         _id: uuidv4(),
@@ -170,8 +158,15 @@ export default function ChatPage() {
       setMessages(prev => [...prev, botMsg]);
       speakText(replyText);
       
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      const errorMsg: Message = {
+        _id: uuidv4(),
+        text: `Error: ${e.message || 'Failed to connect'}`,
+        createdAt: new Date(),
+        user: { _id: 2 },
+      };
+      setMessages(prev => [...prev, errorMsg]);
     } finally {
       setLoading(false);
     }
@@ -180,30 +175,33 @@ export default function ChatPage() {
   // Phone Call Mode Render
   if (showPhoneCall) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-center text-white">
+      <div className="fixed inset-0 z-50 bg-gray-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-white animate-fade-in">
         <div className="absolute top-4 right-4">
-          <button onClick={() => setShowPhoneCall(false)} className="p-2 bg-gray-800 rounded-full">
+          <button onClick={() => setShowPhoneCall(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
             <X size={24} />
           </button>
         </div>
         
-        <div className="w-32 h-32 rounded-full bg-pink-500 flex items-center justify-center mb-8 animate-pulse shadow-[0_0_30px_rgba(236,72,153,0.5)]">
-          <Volume2 size={48} className="text-white" />
+        <div className="relative">
+          <div className="absolute inset-0 bg-pink-500 rounded-full animate-ping opacity-20"></div>
+          <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-8 shadow-2xl shadow-pink-500/50 relative z-10">
+            <Volume2 size={48} className="text-white" />
+          </div>
         </div>
         
-        <h2 className="text-2xl font-bold mb-2">Talking with AI...</h2>
-        <p className="text-gray-400 mb-12">Listening...</p>
+        <h2 className="text-2xl font-bold mb-2 tracking-wide">AI Assistant</h2>
+        <p className="text-gray-400 mb-12 font-medium">{isListening ? "Listening..." : "Tap mic to speak"}</p>
         
-        <div className="flex gap-8">
+        <div className="flex gap-8 items-center">
           <button 
             onClick={toggleListening}
-            className={`p-6 rounded-full ${isListening ? 'bg-red-500' : 'bg-gray-700'} transition-colors`}
+            className={`p-6 rounded-full transition-all duration-300 ${isListening ? 'bg-red-500 shadow-red-500/50 shadow-lg scale-110' : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             {isListening ? <MicOff size={32} /> : <Mic size={32} />}
           </button>
           <button 
             onClick={() => setShowPhoneCall(false)}
-            className="p-6 rounded-full bg-red-600 hover:bg-red-700 transition-colors"
+            className="p-6 rounded-full bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
           >
             <Phone size={32} className="rotate-[135deg]" />
           </button>
@@ -213,38 +211,47 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-3xl mx-auto bg-gray-50">
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-3xl mx-auto">
       {/* Header */}
-      <div className="bg-white px-4 py-3 border-b border-gray-200 flex justify-between items-center shadow-sm">
-        <h1 className="text-lg font-bold text-gray-800">AI Voice Chat</h1>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowPhoneCall(true)} className="p-2 hover:bg-gray-100 rounded-full text-pink-500">
+      <div className="bg-white/80 backdrop-blur-md px-4 py-3 border-b border-gray-100 flex justify-between items-center shadow-sm sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+             <span className="text-lg">🤖</span>
+           </div>
+           <div>
+             <h1 className="text-base font-bold text-gray-800">Doubao AI</h1>
+             <div className="flex items-center gap-1.5">
+               <div className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`} />
+               <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">{loading ? 'Thinking' : 'Online'}</span>
+             </div>
+           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowPhoneCall(true)} className="p-2 hover:bg-pink-50 rounded-full text-pink-500 transition-colors">
             <Phone size={20} />
           </button>
-          <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full border border-green-100">
-            <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-400' : 'bg-green-500'}`} />
-            <span className="text-xs font-medium text-green-700">{loading ? 'Thinking' : 'Online'}</span>
-          </div>
-          <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
+          <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
             <Settings size={20} />
           </button>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.map((msg) => {
           const isUser = msg.user._id === 1;
           return (
-            <div key={msg._id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+            <div key={msg._id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-slide-up`}>
               {!isUser && (
-                <img src={msg.user.avatar} alt="Bot" className="w-8 h-8 rounded-full mr-2 self-end" />
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 self-end shadow-sm">
+                  <span className="text-sm">🤖</span>
+                </div>
               )}
               <div 
-                className={`max-w-[80%] p-3 rounded-2xl shadow-sm text-sm leading-relaxed ${
+                className={`max-w-[85%] p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${
                   isUser 
-                    ? 'bg-pink-500 text-white rounded-br-none' 
-                    : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                    ? 'bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-none shadow-pink-200' 
+                    : 'bg-white text-gray-700 border border-gray-100 rounded-bl-none shadow-gray-100'
                 }`}
               >
                 {msg.text}
@@ -253,12 +260,14 @@ export default function ChatPage() {
           );
         })}
         {loading && (
-          <div className="flex justify-start">
-             <img src="https://img.icons8.com/color/48/000000/bot.png" alt="Bot" className="w-8 h-8 rounded-full mr-2 self-end" />
-             <div className="bg-gray-100 p-3 rounded-2xl rounded-bl-none flex gap-1">
-               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+          <div className="flex justify-start animate-pulse">
+             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 self-end">
+               <span className="text-sm">🤖</span>
+             </div>
+             <div className="bg-white border border-gray-100 p-4 rounded-2xl rounded-bl-none flex gap-1.5 items-center shadow-sm">
+               <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+               <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+               <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
              </div>
           </div>
         )}
@@ -266,12 +275,12 @@ export default function ChatPage() {
       </div>
 
       {/* Input Area */}
-      <div className="p-3 bg-white border-t border-gray-200">
-        <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-full pr-2">
+      <div className="p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 mb-20">
+        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-3xl border border-gray-100 shadow-inner">
           <button 
             onClick={toggleListening}
-            className={`p-2 rounded-full transition-all ${
-              isListening ? 'bg-red-500 text-white shadow-md animate-pulse' : 'bg-white text-gray-500 hover:text-pink-500 shadow-sm'
+            className={`p-2.5 rounded-full transition-all duration-300 ${
+              isListening ? 'bg-red-500 text-white shadow-md animate-pulse' : 'bg-white text-gray-400 hover:text-pink-500 shadow-sm'
             }`}
           >
             {isListening ? <MicOff size={20} /> : <Mic size={20} />}
@@ -282,15 +291,17 @@ export default function ChatPage() {
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder={isListening ? "Listening..." : "Type a message..."}
-            className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 outline-none"
+            className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 outline-none text-gray-700 placeholder:text-gray-400"
             disabled={isListening}
           />
           
           <button 
             onClick={() => handleSend()}
             disabled={!inputText.trim() && !isListening}
-            className={`p-2 rounded-full transition-colors ${
-              inputText.trim() ? 'bg-pink-500 text-white shadow-sm' : 'bg-gray-200 text-gray-400'
+            className={`p-2.5 rounded-full transition-all duration-300 ${
+              inputText.trim() 
+                ? 'bg-blue-500 text-white shadow-md hover:scale-105 active:scale-95' 
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             <Send size={18} />
@@ -300,24 +311,24 @@ export default function ChatPage() {
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="font-bold text-lg">Settings</h2>
-              <button onClick={() => setShowSettings(false)}>
-                <X size={24} className="text-gray-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden scale-100 animate-zoom-in">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="font-bold text-lg text-gray-800">Chat Settings</h2>
+              <button onClick={() => setShowSettings(false)} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                <X size={20} className="text-gray-500" />
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-6">
                <button 
                  onClick={() => {
                    setMessages([]); 
                    setShowSettings(false);
                  }}
-                 className="w-full flex items-center justify-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition-colors"
+                 className="w-full flex items-center justify-center gap-2 p-4 bg-red-50 text-red-500 rounded-2xl font-bold hover:bg-red-100 transition-colors"
                >
-                 <Trash2 size={18} />
-                 Clear History
+                 <Trash2 size={20} />
+                 Clear Chat History
                </button>
             </div>
           </div>
