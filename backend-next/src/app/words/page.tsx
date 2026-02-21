@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/request";
 import { getToken } from "@/lib/clientAuth";
-import { Search, Upload, Plus, Volume2 } from "lucide-react";
+import { Search, Upload, Volume2, Star } from "lucide-react";
 import WordDetailModal, { Word } from "@/components/WordDetailModal";
 
 export default function WordsPage() {
@@ -70,17 +70,23 @@ export default function WordsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 mb-24 md:mb-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+      {/* Header Area */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">Vocabulary</h1>
-          <p className="text-sm text-gray-500 mt-2 font-medium">Manage your personal dictionary • {words.length} words</p>
+          <h1 className="text-4xl font-extrabold text-cheese-title mb-2 tracking-tight">Vocabulary</h1>
+          <p className="text-gray-500 font-medium">
+            Master your words, one slice at a time 🧀
+            <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-bold">
+              {words.length} Words
+            </span>
+          </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-            <label className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-2xl shadow-lg shadow-pink-200 cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm font-bold active:scale-95">
+            <label className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 cheese-btn-primary cursor-pointer active:scale-95 select-none">
             {uploading ? (
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
             ) : (
-                <Upload size={18} />
+                <Upload size={18} strokeWidth={3} />
             )}
             Import Words
             <input type="file" onChange={onImport} accept=".xlsx,.xls,.csv,.json" className="hidden" />
@@ -88,34 +94,35 @@ export default function WordsPage() {
         </div>
       </div>
 
-      <div className="sticky top-0 md:top-4 z-10 bg-white/80 backdrop-blur-xl py-4 -mx-4 px-4 md:mx-0 md:px-0 mb-6 md:rounded-2xl md:shadow-sm transition-all">
-        <div className="relative group max-w-2xl">
-          <div className="absolute left-5 top-3.5 text-gray-400 group-focus-within:text-blue-500 transition-colors">
-            <Search size={20} />
+      {/* Search Bar */}
+      <div className="sticky top-2 z-20 mb-8 px-1">
+        <div className="relative group max-w-2xl mx-auto md:mx-0 shadow-sm rounded-2xl">
+          <div className="absolute left-5 top-4 text-gray-400 group-focus-within:text-yellow-500 transition-colors">
+            <Search size={22} strokeWidth={2.5} />
           </div>
           <input
-            placeholder="Search word, meaning or tag..."
+            placeholder="Search for a word..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="w-full bg-gray-50/50 border border-gray-200 rounded-2xl py-3.5 pl-14 pr-4 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300 transition-all text-gray-700 placeholder:text-gray-400 shadow-sm font-medium"
+            className="w-full bg-white border-2 border-gray-100 rounded-2xl py-4 pl-14 pr-4 outline-none focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 transition-all text-gray-700 placeholder:text-gray-300 font-bold text-lg shadow-sm"
           />
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-500 text-sm py-3 px-4 rounded-xl flex items-center mb-6 border border-red-100 animate-pulse">
-          <span className="mr-2">⚠️</span> {error}
+        <div className="bg-red-50 text-red-500 font-bold text-sm py-4 px-6 rounded-2xl flex items-center mb-8 border-2 border-red-100 animate-pulse">
+          <span className="mr-2 text-xl">⚠️</span> {error}
         </div>
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-32 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-50" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="h-40 bg-white rounded-[24px] animate-pulse border-2 border-gray-100" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map((w: any) => (
             <div
               key={w.id}
@@ -123,55 +130,64 @@ export default function WordsPage() {
                 setSelectedWord(w);
                 setModalVisible(true);
               }}
-              className="group bg-white border border-gray-100 rounded-3xl p-5 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 cursor-pointer flex flex-col justify-between hover:-translate-y-1 relative overflow-hidden"
+              className="cheese-card relative p-5 cursor-pointer group flex flex-col h-full min-h-[160px]"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform" />
-              
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                    <span className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors tracking-tight">{w.word}</span>
-                    <button className="p-2 -mr-2 -mt-2 rounded-full text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors z-10" onClick={(e) => { e.stopPropagation(); /* play sound */ }}>
-                        <Volume2 size={18} />
-                    </button>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mb-3">
-                    {w.partOfSpeech && (
-                        <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg uppercase tracking-wider">
-                        {w.partOfSpeech}
-                        </span>
-                    )}
-                    {w.level && (
-                        <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
-                        {w.level}
-                        </span>
-                    )}
-                </div>
-
-                <div className="text-sm text-gray-500 line-clamp-2 font-medium leading-relaxed">
-                  {w.meanings?.[0]?.definition || w.meaning || "No definition available"}
-                </div>
+              {/* Top Row: Word & Sound */}
+              <div className="flex justify-between items-start mb-1">
+                <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight leading-tight group-hover:text-yellow-600 transition-colors">
+                  {w.word}
+                </h3>
+                <button 
+                  className="p-2 -mr-2 -mt-2 text-gray-300 hover:text-yellow-500 hover:bg-yellow-50 rounded-full transition-colors z-10"
+                  onClick={(e) => { e.stopPropagation(); /* play sound */ }}
+                >
+                  <Volume2 size={20} strokeWidth={2.5} />
+                </button>
               </div>
+
+              {/* Phonetic & Tags */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                 <span className="text-sm font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">
+                   {w.phonetic_us || w.phonetic_uk || '/.../'}
+                 </span>
+                 {w.partOfSpeech && (
+                    <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg uppercase tracking-wider border border-blue-100">
+                      {w.partOfSpeech}
+                    </span>
+                 )}
+              </div>
+
+              {/* Divider */}
+              <div className="h-0.5 w-10 bg-gray-100 rounded-full mb-3 group-hover:w-full group-hover:bg-yellow-200 transition-all duration-300" />
+
+              {/* Meaning (Bottom) */}
+              <div className="mt-auto">
+                <p className="text-base font-bold text-gray-600 line-clamp-2 leading-snug">
+                  {w.meanings?.[0]?.definition || w.meaning || "No definition"}
+                </p>
+              </div>
+              
+              {/* Decorative Circle */}
+              <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-yellow-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-0" />
             </div>
           ))}
+          
           {filtered.length === 0 && !loading && (
-             <div className="col-span-full flex flex-col items-center justify-center py-24 text-gray-400">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                    <Search size={24} className="text-gray-300" />
+             <div className="col-span-full flex flex-col items-center justify-center py-32 text-gray-400">
+                <div className="w-24 h-24 bg-yellow-50 rounded-full flex items-center justify-center mb-6 animate-float">
+                    <Search size={40} className="text-yellow-300" strokeWidth={3} />
                 </div>
-                <p className="font-medium">No words found matching "{q}"</p>
+                <p className="font-bold text-lg text-gray-300">No words found matching "{q}"</p>
              </div>
           )}
         </div>
       )}
-
       
       <WordDetailModal 
         visible={modalVisible} 
         word={selectedWord} 
         onClose={() => setModalVisible(false)} 
         onToggleFavorite={(w) => {
-           // Implement toggle favorite
            alert('Added to favorites (Mock)');
         }}
       />

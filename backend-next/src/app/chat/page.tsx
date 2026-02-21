@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '@/lib/request';
-import { Mic, MicOff, Send, Phone, Settings, Volume2, X, Trash2 } from 'lucide-react';
+import { Mic, MicOff, Send, Phone, Settings, Volume2, X, Trash2, History } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import PhoneCallInterface from '@/components/PhoneCallInterface';
 
 interface Message {
   _id: string;
@@ -44,11 +45,17 @@ export default function ChatPage() {
   const [isListening, setIsListening] = useState(false);
   const [showPhoneCall, setShowPhoneCall] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [callHistory, setCallHistory] = useState<any[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
+    // Load call history
+    const history = JSON.parse(localStorage.getItem('call_history') || '[]');
+    setCallHistory(history);
+
     // Initial greeting
     setMessages([
       {
@@ -175,38 +182,14 @@ export default function ChatPage() {
   // Phone Call Mode Render
   if (showPhoneCall) {
     return (
-      <div className="fixed inset-0 z-50 bg-gray-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-white animate-fade-in">
-        <div className="absolute top-4 right-4">
-          <button onClick={() => setShowPhoneCall(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
-            <X size={24} />
-          </button>
-        </div>
-        
-        <div className="relative">
-          <div className="absolute inset-0 bg-pink-500 rounded-full animate-ping opacity-20"></div>
-          <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-8 shadow-2xl shadow-pink-500/50 relative z-10">
-            <Volume2 size={48} className="text-white" />
-          </div>
-        </div>
-        
-        <h2 className="text-2xl font-bold mb-2 tracking-wide">AI Assistant</h2>
-        <p className="text-gray-400 mb-12 font-medium">{isListening ? "Listening..." : "Tap mic to speak"}</p>
-        
-        <div className="flex gap-8 items-center">
-          <button 
-            onClick={toggleListening}
-            className={`p-6 rounded-full transition-all duration-300 ${isListening ? 'bg-red-500 shadow-red-500/50 shadow-lg scale-110' : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            {isListening ? <MicOff size={32} /> : <Mic size={32} />}
-          </button>
-          <button 
-            onClick={() => setShowPhoneCall(false)}
-            className="p-6 rounded-full bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
-          >
-            <Phone size={32} className="rotate-[135deg]" />
-          </button>
-        </div>
-      </div>
+      <PhoneCallInterface 
+        onClose={() => {
+          setShowPhoneCall(false);
+          // Refresh history
+          const history = JSON.parse(localStorage.getItem('call_history') || '[]');
+          setCallHistory(history);
+        }} 
+      />
     );
   }
 
@@ -227,6 +210,9 @@ export default function ChatPage() {
            </div>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowHistory(true)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
+            <History size={20} />
+          </button>
           <button onClick={() => setShowPhoneCall(true)} className="p-2 hover:bg-pink-50 rounded-full text-pink-500 transition-colors">
             <Phone size={20} />
           </button>
@@ -308,6 +294,55 @@ export default function ChatPage() {
           </button>
         </div>
       </div>
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden scale-100 animate-zoom-in flex flex-col max-h-[70vh]">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                <History size={18} /> Call History
+              </h2>
+              <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-0">
+               {callHistory.length === 0 ? (
+                 <div className="p-8 text-center text-gray-400 text-sm">No call history</div>
+               ) : (
+                 callHistory.map((call, i) => (
+                   <div key={i} className="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-500">
+                          <Phone size={18} />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-800">Doubao AI</div>
+                          <div className="text-xs text-gray-400">{new Date(call.date).toLocaleString()}</div>
+                        </div>
+                      </div>
+                      <div className="text-sm font-medium text-gray-600">
+                        {Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}
+                      </div>
+                   </div>
+                 ))
+               )}
+            </div>
+            <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+               <button 
+                 onClick={() => {
+                   localStorage.removeItem('call_history');
+                   setCallHistory([]);
+                 }}
+                 className="w-full text-center text-xs text-red-500 hover:text-red-600 font-medium"
+               >
+                 Clear History
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings Modal */}
       {showSettings && (

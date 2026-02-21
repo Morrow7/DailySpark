@@ -5,7 +5,7 @@ import { apiFetch } from '@/lib/request';
 import { mockArticles } from '@/lib/mockArticles';
 import { mockWords } from '@/lib/mockWords';
 import WordDetailModal, { Word } from '@/components/WordDetailModal';
-import { BookOpen, Clock, ChevronLeft, Bookmark, Tag } from 'lucide-react';
+import { BookOpen, Clock, ChevronLeft, Bookmark, Tag, Star } from 'lucide-react';
 
 export default function ReadingPage() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -87,8 +87,6 @@ export default function ReadingPage() {
   };
 
   const handleToggleFavorite = async (word: Word) => {
-    // Implement API call to save word
-    // For now just toggle local state
     if (selectedWord) {
       setSelectedWord({ ...selectedWord, isFavorite: !selectedWord.isFavorite });
     }
@@ -97,11 +95,11 @@ export default function ReadingPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8 mb-24 space-y-6">
-        <div className="h-64 bg-white rounded-3xl animate-pulse shadow-sm" />
-        <div className="space-y-4">
-           {[1, 2, 3].map(i => (
-             <div key={i} className="h-32 bg-white rounded-2xl animate-pulse shadow-sm" />
+      <div className="max-w-7xl mx-auto px-4 py-8 mb-24 space-y-6">
+        <div className="h-64 bg-white rounded-[32px] animate-pulse border-2 border-gray-100" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           {[1, 2, 3, 4].map(i => (
+             <div key={i} className="h-40 bg-white rounded-[24px] animate-pulse border-2 border-gray-100" />
            ))}
         </div>
       </div>
@@ -113,48 +111,51 @@ export default function ReadingPage() {
     const paragraphs = selectedArticle.content.split('\n');
     
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6 mb-24 animate-slide-up">
+      <div className="max-w-4xl mx-auto px-4 py-6 mb-24 animate-slide-up">
         {/* Header */}
-        <div className="sticky top-0 bg-white/90 backdrop-blur-lg z-20 py-4 -mx-4 px-4 border-b border-gray-100 flex items-center justify-between mb-6 shadow-sm transition-all">
+        <div className="sticky top-0 bg-[#fffcf5]/95 backdrop-blur-xl z-20 py-4 -mx-4 px-4 border-b border-gray-100 flex items-center justify-between mb-8 transition-all">
           <button 
             onClick={() => setSelectedArticle(null)}
-            className="flex items-center text-gray-500 hover:text-gray-900 transition-colors bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-xl"
+            className="flex items-center text-gray-600 hover:text-cheese-500 transition-colors bg-white border-2 border-gray-100 hover:border-cheese-300 px-4 py-2 rounded-2xl font-bold text-sm shadow-sm"
           >
-            <ChevronLeft size={20} />
-            <span className="ml-1 font-medium text-sm">Back</span>
+            <ChevronLeft size={20} strokeWidth={3} />
+            <span className="ml-1">Back</span>
           </button>
           <div className="flex gap-2">
-            <button className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-all">
-               <Bookmark size={20} />
+            <button className="p-2.5 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-xl transition-all border-2 border-transparent hover:border-pink-200">
+               <Bookmark size={20} strokeWidth={2.5} />
             </button>
           </div>
         </div>
 
         {/* Content */}
         <article className="prose prose-lg max-w-none">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-4 leading-tight">{selectedArticle.title}</h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-8 font-medium">
-            <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg flex items-center gap-1">
-              <Tag size={14} />
+          <h1 className="text-4xl font-extrabold text-gray-800 mb-6 leading-tight tracking-tight">
+            {selectedArticle.title}
+          </h1>
+          
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-10 font-bold">
+            <span className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl flex items-center gap-1.5 border border-blue-100">
+              <Tag size={14} strokeWidth={3} />
               {selectedArticle.category || 'General'}
             </span>
-            <span className="bg-green-50 text-green-600 px-3 py-1 rounded-lg border border-green-100">
+            <span className="bg-green-50 text-green-600 px-3 py-1.5 rounded-xl border border-green-100">
               {selectedArticle.level || 'General'}
             </span>
-            <div className="flex items-center text-gray-400 ml-auto">
-              <Clock size={16} className="mr-1.5" />
+            <div className="flex items-center text-gray-400 ml-auto bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+              <Clock size={16} className="mr-1.5" strokeWidth={2.5} />
               {selectedArticle.readTime || '5 min'} read
             </div>
           </div>
 
-          <div className="space-y-8 text-gray-700 leading-8 font-serif">
+          <div className="space-y-8 text-gray-700 leading-[2.2] font-serif text-xl">
             {paragraphs.map((para: string, i: number) => (
-              <p key={i} className="text-xl">
+              <p key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-50">
                 {para.split(' ').map((word, j) => (
                   <span
                     key={`${i}-${j}`}
                     onClick={() => handleWordClick(word)}
-                    className="cursor-pointer hover:bg-yellow-200 hover:text-blue-800 transition-colors rounded px-0.5 selection:bg-pink-200"
+                    className="cursor-pointer hover:bg-cheese-100 hover:text-cheese-600 transition-colors rounded px-1 selection:bg-cheese-200"
                   >
                     {word}{' '}
                   </span>
@@ -180,79 +181,77 @@ export default function ReadingPage() {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left Column: List */}
         <div className="flex-1 min-w-0">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
-                <span className="w-2 h-8 bg-green-500 rounded-full inline-block" />
+            <h1 className="text-4xl font-extrabold text-cheese-title mb-8 flex items-center gap-3 tracking-tight">
+                <span className="w-3 h-10 bg-cheese-400 rounded-full inline-block rotate-12 shadow-sm" />
                 Reading Lounge
             </h1>
 
             {/* Hero */}
             {articles.length > 0 && (
                 <div 
-                className="group relative bg-gradient-to-br from-green-400 to-emerald-600 rounded-3xl p-8 text-white mb-10 shadow-lg shadow-green-200 overflow-hidden cursor-pointer transition-transform hover:-translate-y-1"
+                className="group relative bg-[#ffedd5] rounded-[32px] p-8 text-gray-800 mb-10 shadow-[0_8px_0_#fed7aa] overflow-hidden cursor-pointer transition-transform hover:-translate-y-1 border-2 border-[#fed7aa]"
                 onClick={() => setSelectedArticle(articles[0])}
                 >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                 
                 <div className="relative z-10">
-                    <div className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold mb-4 border border-white/10">
-                    Today's Pick
+                    <div className="inline-flex items-center gap-2 bg-white px-4 py-1.5 rounded-full text-xs font-extrabold mb-4 shadow-sm text-orange-500 uppercase tracking-wider">
+                      <Star size={12} fill="currentColor" /> Today's Pick
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight max-w-lg">
+                    <h2 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight max-w-lg text-gray-900">
                     {articles[0].title}
                     </h2>
-                    <div className="flex items-center gap-4 text-green-50 text-sm mb-6 font-medium">
-                    <span className="flex items-center gap-1 bg-black/10 px-2 py-1 rounded-lg">
-                        <Clock size={14} /> {articles[0].readTime || '5 min'}
+                    <div className="flex items-center gap-4 text-gray-600 text-sm mb-8 font-bold">
+                    <span className="flex items-center gap-1.5 bg-white/50 px-3 py-1.5 rounded-xl">
+                        <Clock size={16} strokeWidth={2.5} /> {articles[0].readTime || '5 min'}
                     </span>
-                    <span className="bg-white/20 px-2 py-1 rounded-lg">
+                    <span className="bg-white/50 px-3 py-1.5 rounded-xl">
                         {articles[0].level || 'General'}
                     </span>
                     </div>
-                    <button className="bg-white text-green-600 px-6 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-2 group-hover:gap-3">
-                    Read Now <BookOpen size={16} />
+                    <button className="cheese-btn-primary px-8 py-3.5 rounded-2xl text-base shadow-lg flex items-center gap-2 group-hover:gap-3 group-hover:scale-105 transition-all">
+                    Start Reading <BookOpen size={18} strokeWidth={3} />
                     </button>
                 </div>
                 </div>
             )}
 
             {/* List */}
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-800">All Articles</h3>
-                <button className="text-sm text-blue-500 font-bold hover:bg-blue-50 px-4 py-2 rounded-xl transition-colors">
+            <div className="flex items-center justify-between mb-6 px-1">
+                <h3 className="text-xl font-extrabold text-gray-800">All Stories</h3>
+                <button className="text-sm text-cheese-500 font-bold hover:bg-cheese-50 px-4 py-2 rounded-xl transition-colors">
                 View All
                 </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
                 {articles.map(article => (
                 <div 
                     key={article.id}
                     onClick={() => setSelectedArticle(article)}
-                    className="group bg-white border border-gray-100 rounded-3xl p-5 hover:shadow-xl hover:shadow-gray-200/50 transition-all cursor-pointer hover:border-green-100 relative overflow-hidden flex flex-col justify-between"
+                    className="cheese-card p-6 cursor-pointer flex flex-col justify-between group h-full min-h-[200px]"
                 >
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-bl from-green-50 to-transparent rounded-bl-full -mr-10 -mt-10 opacity-50 pointer-events-none" />
-                    
                     <div>
-                        <div className="flex justify-between items-start mb-3 relative z-10">
-                        <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide">
+                        <div className="flex justify-between items-start mb-4">
+                        <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider border border-blue-100">
                             {article.category || 'General'}
                         </span>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                            article.level === 'Advanced' ? 'bg-red-50 text-red-500' :
-                            article.level === 'Intermediate' ? 'bg-yellow-50 text-yellow-600' :
-                            'bg-green-50 text-green-600'
+                        <span className={`text-[10px] font-extrabold px-3 py-1 rounded-lg border ${
+                            article.level === 'Advanced' ? 'bg-red-50 text-red-500 border-red-100' :
+                            article.level === 'Intermediate' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                            'bg-green-50 text-green-600 border-green-100'
                         }`}>
                             {article.level || 'General'}
                         </span>
                         </div>
                         
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors line-clamp-2 leading-tight">
+                        <h3 className="text-xl font-extrabold text-gray-800 mb-3 group-hover:text-cheese-500 transition-colors line-clamp-2 leading-tight">
                         {article.title}
                         </h3>
                     </div>
                     
-                    <div className="flex items-center text-xs text-gray-400 font-medium mt-4">
-                    <Clock size={14} className="mr-1.5" />
+                    <div className="flex items-center text-xs text-gray-400 font-bold mt-4 pt-4 border-t border-gray-50">
+                    <Clock size={14} className="mr-1.5" strokeWidth={2.5} />
                     {article.readTime || '5 min'} read
                     </div>
                 </div>
@@ -260,38 +259,41 @@ export default function ReadingPage() {
             </div>
         </div>
 
-        {/* Right Column: Stats / Mini Profile (Desktop Only) */}
+        {/* Right Column: Stats (Desktop Only) */}
         <div className="hidden lg:block w-80 space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 sticky top-8">
-                <h3 className="font-bold text-gray-900 mb-4">Reading Stats</h3>
+            <div className="cheese-card p-6 sticky top-8 border-cheese-100 bg-white">
+                <h3 className="font-extrabold text-gray-900 mb-6 flex items-center gap-2">
+                    <div className="p-1.5 bg-green-100 rounded-lg text-green-600"><BookOpen size={16} strokeWidth={3} /></div>
+                    Reading Stats
+                </h3>
                 <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                            <BookOpen size={20} />
+                    <div className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50 border border-gray-100">
+                        <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-xl font-black">
+                            12
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-gray-900">12</div>
-                            <div className="text-xs text-gray-500">Articles Read</div>
+                            <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Articles</div>
+                            <div className="text-sm font-bold text-gray-700">Completed</div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                            <Clock size={20} />
+                    <div className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50 border border-gray-100">
+                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-black">
+                            45
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-gray-900">45m</div>
-                            <div className="text-xs text-gray-500">Time Spent</div>
+                            <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Minutes</div>
+                            <div className="text-sm font-bold text-gray-700">Reading Time</div>
                         </div>
                     </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-gray-100">
-                    <h4 className="font-bold text-sm text-gray-800 mb-3">Your Goals</h4>
-                    <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
-                        <div className="bg-green-500 h-2 rounded-full w-[60%]" />
+                    <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-3">Weekly Goal</h4>
+                    <div className="w-full bg-gray-100 rounded-full h-3 mb-2 overflow-hidden">
+                        <div className="bg-cheese-400 h-full rounded-full w-[60%] shadow-[0_2px_10px_rgba(251,191,36,0.5)]" />
                     </div>
-                    <div className="text-xs text-gray-500 flex justify-between">
-                        <span>3/5 Articles</span>
-                        <span>60%</span>
+                    <div className="text-xs font-bold text-gray-500 flex justify-between">
+                        <span>3/5 Stories</span>
+                        <span className="text-cheese-500">60%</span>
                     </div>
                 </div>
             </div>
