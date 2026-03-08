@@ -1,0 +1,12 @@
+0 verbose cli D:\node.js\node.js\node.exe D:\node.js\node.js\node_modules\npm\bin\npm-cli.js
+1 info using npm@10.9.2
+2 info using node@v22.14.0
+3 silly config load:file:D:\node.js\node.js\node_modules\npm\npmrc
+4 silly config load:file:D:\DailySpark\mobile-native\.npmrc
+5 silly config load:file:D:\DailySpark\mobile-native\temp_home\.npmrc
+6 silly config load:file:D:\DailySpark\mobile-native\temp_home\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm run android
+8 verbose argv "run" "android"
+9 verbose logfile logs-max:10 dir:D:\DailySpark\mobile-native\temp_home\AppData\Local\npm-cache\_logs\2026-02-15T15_29_29_555Z-
+10 verbose logfile D:\DailySpark\mobile-native\temp_home\AppData\Local\npm-cache\_logs\2026-02-15T15_29_29_555Z-debug-0.log
+11 silly logfile done cleaning log files
