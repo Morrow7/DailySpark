@@ -1,0 +1,13 @@
+cmdline-tools.zip
+node_modules
+.env
+.DS_Store
+mobile-native-backup/
+jdk17.msi
+jdk17.zip
+**/.expo
+**/node_modules
+**/android/app/build
+**/ios/Pods
+**/.gradle
+**/build

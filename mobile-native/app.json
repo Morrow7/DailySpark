@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "mobile-native",
+    "slug": "mobile-native",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dailyspark.mobilenative",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["weixin", "wechat"]
+      }
+    },
+    "android": {
+      "package": "com.dailyspark.mobilenative",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9f2fc255-8e22-41bf-aaef-7d2d2fffcb56"
+      },
+      "doubaoApiKey": "YOUR_DOUBAO_API_KEY",
+      "doubaoApiUrl": "https://ark.cn-beijing.volces.com/api/v3",
+      "wechatAppId": "YOUR_WECHAT_APP_ID",
+      "wechatAppSecret": "YOUR_WECHAT_APP_SECRET",
+      "wechatMchId": "YOUR_MCH_ID"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-av",
+      [
+        "./plugins/withWechat",
+        {
+          "appId": "YOUR_WECHAT_APP_ID",
+          "universalLink": "https://your.domain.com/apple-app-site-association/"
+        }
+      ]
+    ]
+  }
+}

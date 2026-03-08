@@ -1,0 +1,9 @@
+tmp
+tmp/
+/tmp
+/tmp/
+*.tmp
+.android/
+android/app/build/
+node_modules/
+.expo/
