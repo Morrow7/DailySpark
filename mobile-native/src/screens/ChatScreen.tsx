@@ -79,7 +79,7 @@ const ChatScreen: React.FC = () => {
   const soundRef = useRef<Audio.Sound | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const conversationHistory = useRef<{ role: string; content: string }[]>([
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: getSystemPrompt('en') },
   ]);
 
   // 动画值
