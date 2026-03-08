@@ -21,6 +21,16 @@
         "key": "android-cache-v1",
         "paths": ["/root/.gradle/caches", "/root/.gradle/wrapper"]
       }
+    },
+    "apk": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "aab": {
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {

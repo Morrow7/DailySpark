@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { palette, typography, spacing, shadows, borderRadius } from '../theme';
 import { useAppStore, vipPlans } from '../store';
-import { processVipPaymentReal } from '../api/wechatReal';
+import { wechatPay, queryOrderStatus, PaymentType } from '../services/wechat';
 
 const { width } = Dimensions.get('window');
 
@@ -87,20 +87,52 @@ const VipScreen: React.FC = () => {
     const plan = vipPlans.find((p) => p.id === selectedPlan);
     if (!plan) return;
 
+    // 映射套餐到支付类型
+    const planToPaymentType: Record<string, PaymentType> = {
+      'month': PaymentType.VIP_MONTH,
+      'quarter': PaymentType.VIP_QUARTER,
+      'year': PaymentType.VIP_YEAR,
+    };
+
+    const paymentType = planToPaymentType[plan.id];
+    if (!paymentType) {
+      Alert.alert('错误', '无效的套餐类型');
+      return;
+    }
+
     setIsProcessing(true);
-    setPayProgress(0);
+    setPayProgress(10);
     setPayStatus('正在准备支付...');
 
     try {
-      // 调用真正的微信支付
-      const result = await processVipPaymentReal(
-        plan.id,
-        plan.name,
-        plan.price,
-        user?.id
-      );
+      // 模拟进度更新
+      const progressInterval = setInterval(() => {
+        setPayProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      // 调用微信支付
+      const result = await wechatPay(paymentType, user?.id || 'guest');
+
+      clearInterval(progressInterval);
+      setPayProgress(100);
+      setPayStatus('处理中...');
 
       if (result.success) {
+        // 查询订单状态确认支付成功
+        if (result.orderId) {
+          const statusResult = await queryOrderStatus(result.orderId);
+          if (!statusResult.paid && !__DEV__) {
+            Alert.alert('提示', '支付处理中，请稍后查看订单状态');
+            return;
+          }
+        }
+
         // 更新用户VIP状态
         const expireTime = Date.now() + plan.duration * 24 * 60 * 60 * 1000;
         setUser({
@@ -115,10 +147,10 @@ const VipScreen: React.FC = () => {
           [{ text: '确定', onPress: () => navigation.goBack() }]
         );
       } else {
-        if (result.errMsg === '用户取消支付') {
+        if (result.error?.includes('取消')) {
           // 用户主动取消，不显示错误
         } else {
-          Alert.alert('支付失败', result.errMsg || '请重试');
+          Alert.alert('支付失败', result.error || '请重试');
         }
       }
     } catch (error) {
@@ -129,6 +161,9 @@ const VipScreen: React.FC = () => {
       setPayStatus('');
     }
   };
+
+  // 开发模式标记声明
+  declare const __DEV__: boolean;
 
   const renderPlanCard = (plan: typeof vipPlans[0]) => {
     const isSelected = selectedPlan === plan.id;

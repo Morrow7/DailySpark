@@ -37,10 +37,13 @@ export const WordStorage = {
   addWord: async (newWord: Word) => {
     try {
       const currentWords = (await WordStorage.loadWords()) || [];
+
       // Check if word already exists (case insensitive)
-      if (currentWords.some(w => w.word.toLowerCase() === newWord.word.toLowerCase())) {
+      const exists = currentWords.some(w => w.word.toLowerCase() === newWord.word.toLowerCase());
+      if (exists) {
         return false; // Duplicate
       }
+
       const updatedWords = [...currentWords, newWord];
       await WordStorage.saveWords(updatedWords);
       return true;
@@ -55,7 +58,7 @@ export const WordStorage = {
     try {
       const currentWords = (await WordStorage.loadWords()) || [];
       const currentWordSet = new Set(currentWords.map(w => w.word.toLowerCase()));
-      
+
       const addedWords: Word[] = [];
       const duplicates: string[] = [];
 

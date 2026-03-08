@@ -21,7 +21,6 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import RabbitEatingGrass from '../components/RabbitEatingGrass';
 import { palette, typography, spacing, shadows, borderRadius } from '../theme';
 import { useAppStore } from '../store';
 
@@ -181,10 +180,6 @@ const HomeScreen: React.FC = () => {
           )}
         </View>
 
-        {/* 兔子吃草动画 */}
-        <View style={styles.rabbitContainer}>
-          <RabbitEatingGrass size={180} />
-        </View>
       </LinearGradient>
 
       {/* 内容区域 */}
@@ -357,12 +352,6 @@ const styles = StyleSheet.create({
     color: palette.vipGoldDark,
     fontWeight: '700',
     marginLeft: 4,
-  },
-  rabbitContainer: {
-    position: 'absolute',
-    bottom: -20,
-    right: 20,
-    zIndex: 2,
   },
   content: {
     flex: 1,

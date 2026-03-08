@@ -37,7 +37,10 @@ export async function sendChatMessage(
   messages: DoubaoMessage[],
   model: string = CHAT_MODEL
 ): Promise<string> {
-  console.log('发送消息到豆包API:', JSON.stringify(messages, null, 2));
+  console.log('=== 发送消息到豆包API ===');
+  console.log('API URL:', `${DOUBAO_API_URL}/chat/completions`);
+  console.log('模型:', model);
+  console.log('消息:', JSON.stringify(messages, null, 2));
   
   try {
     const response = await fetch(`${DOUBAO_API_URL}/chat/completions`, {
@@ -54,19 +57,20 @@ export async function sendChatMessage(
       }),
     });
 
-    console.log('API响应状态:', response.status);
+    console.log('API响应状态:', response.status, response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API错误:', errorText);
+      console.error('API错误详情:', errorText);
       throw new Error(`API请求失败 (${response.status}): ${errorText}`);
     }
 
     const data: DoubaoResponse = await response.json();
-    console.log('API响应数据:', data);
+    console.log('API响应数据:', JSON.stringify(data, null, 2));
     
     const content = data.choices?.[0]?.message?.content;
     if (!content) {
+      console.error('API返回数据结构:', data);
       throw new Error('API返回内容为空');
     }
     

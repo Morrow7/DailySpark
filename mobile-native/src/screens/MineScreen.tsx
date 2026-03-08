@@ -14,7 +14,7 @@ import type { RootStackNavigationProp } from '../navigation/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import { palette, typography, spacing, shadows, borderRadius } from '../theme';
 import { useAppStore } from '../store';
-import { loginWithWechat, mockWechatLogin, WechatUserInfo } from '../api/wechat';
+import { wechatLogin, getWechatUserInfo, WechatUserInfo } from '../services/wechat';
 
 interface MenuItem {
   icon: keyof typeof Ionicons.glyphMap;
@@ -34,22 +34,38 @@ const MineScreen: React.FC = () => {
   const handleWechatLogin = async () => {
     setIsLoggingIn(true);
     try {
-      // 实际项目中使用 loginWithWechat()
-      // 这里使用模拟登录
-      const result = await mockWechatLogin();
+      // 步骤1：获取微信授权码
+      const loginResult = await wechatLogin();
       
+      if (!loginResult.success || !loginResult.code) {
+        if (loginResult.error?.includes('取消')) {
+          // 用户取消，静默处理
+          return;
+        }
+        throw new Error(loginResult.error || '登录失败');
+      }
+
+      // 步骤2：使用 code 获取用户信息
+      const wechatUser = await getWechatUserInfo(loginResult.code);
+      
+      if (!wechatUser) {
+        throw new Error('获取用户信息失败');
+      }
+
+      // 步骤3：创建/更新用户数据
       const userInfo = {
-        id: result.openid,
-        nickname: result.userInfo.nickname,
-        avatar: result.userInfo.headimgurl,
+        id: wechatUser.openid,
+        nickname: wechatUser.nickname,
+        avatar: wechatUser.avatar,
         phone: undefined,
         isVip: false,
         createdAt: Date.now(),
       };
 
       setUser(userInfo);
-      Alert.alert('登录成功', `欢迎回来，${userInfo.nickname}`);
+      Alert.alert('登录成功', `欢迎，${userInfo.nickname}！`);
     } catch (error) {
+      console.error('登录失败:', error);
       Alert.alert('登录失败', error instanceof Error ? error.message : '请重试');
     } finally {
       setIsLoggingIn(false);

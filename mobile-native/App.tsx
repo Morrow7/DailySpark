@@ -13,6 +13,8 @@ import ChatScreen from './src/screens/ChatScreen';
 import MineScreen from './src/screens/MineScreen';
 import VipScreen from './src/screens/VipScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import LittlePrinceScreen from './src/screens/LittlePrinceScreen';
+import ChapterDetailScreen from './src/screens/ChapterDetailScreen';
 
 // 导入自定义组件
 import NatureTabBar from './src/components/NatureTabBar';
@@ -111,6 +113,24 @@ export default function App() {
           options={{ 
             presentation: 'modal',
             animation: 'slide_from_bottom',
+          }} 
+        />
+        
+        {/* 小王子书籍页面 */}
+        <Stack.Screen 
+          name="LittlePrince" 
+          component={LittlePrinceScreen}
+          options={{ 
+            animation: 'slide_from_right',
+          }} 
+        />
+        
+        {/* 章节详情页面 */}
+        <Stack.Screen 
+          name="ChapterDetail" 
+          component={ChapterDetailScreen}
+          options={{ 
+            animation: 'slide_from_right',
           }} 
         />
       </Stack.Navigator>

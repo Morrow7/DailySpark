@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { palette, typography, spacing, shadows, borderRadius } from '../theme';
 import { useAppStore } from '../store';
+import { littlePrinceBook, chapters as littlePrinceChapters } from '../data/littlePrince';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +30,17 @@ interface Article {
 }
 
 const mockArticles: Article[] = [
+  {
+    id: 'prince',
+    title: 'The Little Prince',
+    excerpt: 'A timeless tale about a young prince who travels the universe and learns about life, love, and friendship...',
+    category: '文学',
+    difficulty: 'medium',
+    readTime: 15,
+    wordCount: 1200,
+    isCompleted: false,
+    imageColor: palette.accent,
+  },
   {
     id: '1',
     title: 'The Power of Morning Routines',
@@ -102,6 +114,10 @@ const ReadingScreen: React.FC = () => {
 
   const navigateToArticleDetail = (articleId: string) => {
     navigation.navigate('ArticleDetail', { articleId });
+  };
+
+  const navigateToLittlePrince = () => {
+    navigation.navigate('LittlePrince');
   };
 
   const filteredArticles = mockArticles.filter((article) => {
@@ -280,6 +296,55 @@ const ReadingScreen: React.FC = () => {
         renderItem={renderArticleCard}
         contentContainerStyle={styles.articleList}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View style={styles.bookSection}>
+            <Text style={styles.sectionTitle}>经典书籍</Text>
+            <TouchableOpacity
+              style={styles.bookCard}
+              onPress={navigateToLittlePrince}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={['#FF9A9E', '#FECFEF']}
+                style={styles.bookGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.bookContent}>
+                  <View style={styles.bookInfo}>
+                    <Text style={styles.bookTitle}>{littlePrinceBook.title}</Text>
+                    <Text style={styles.bookTitleCn}>{littlePrinceBook.titleCn}</Text>
+                    <Text style={styles.bookAuthor}>{littlePrinceBook.author}</Text>
+                    <Text style={styles.bookDescription} numberOfLines={2}>
+                      {littlePrinceBook.descriptionCn}
+                    </Text>
+                    <View style={styles.bookStats}>
+                      <View style={styles.bookStat}>
+                        <Ionicons name="book-outline" size={14} color="rgba(255,255,255,0.8)" />
+                        <Text style={styles.bookStatText}>{littlePrinceBook.totalChapters} 章</Text>
+                      </View>
+                      <View style={styles.bookStat}>
+                        <Ionicons name="text-outline" size={14} color="rgba(255,255,255,0.8)" />
+                        <Text style={styles.bookStatText}>{(littlePrinceBook.totalWordCount / 1000).toFixed(1)}k 词</Text>
+                      </View>
+                      <View style={styles.bookStat}>
+                        <Ionicons name="time-outline" size={14} color="rgba(255,255,255,0.8)" />
+                        <Text style={styles.bookStatText}>约{Math.ceil(littlePrinceBook.totalWordCount / 200)}分钟</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={styles.bookIcon}>
+                    <Ionicons name="planet" size={50} color="rgba(255,255,255,0.3)" />
+                  </View>
+                </View>
+                <View style={styles.readButton}>
+                  <Text style={styles.readButtonText}>开始阅读</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#FFF" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="newspaper-outline" size={60} color={palette.textLight} />
@@ -482,6 +547,80 @@ const styles = StyleSheet.create({
     ...typography.body1,
     color: palette.textLight,
     marginTop: spacing.md,
+  },
+  // 书籍区域
+  bookSection: {
+    marginBottom: spacing.lg,
+  },
+  bookCard: {
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  bookGradient: {
+    padding: spacing.lg,
+  },
+  bookContent: {
+    flexDirection: 'row',
+  },
+  bookInfo: {
+    flex: 1,
+  },
+  bookTitle: {
+    ...typography.h3,
+    color: '#FFF',
+    fontWeight: '700',
+  },
+  bookTitleCn: {
+    ...typography.body1,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 2,
+  },
+  bookAuthor: {
+    ...typography.body2,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: spacing.xs,
+  },
+  bookDescription: {
+    ...typography.body2,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: spacing.sm,
+    lineHeight: 20,
+  },
+  bookStats: {
+    flexDirection: 'row',
+    marginTop: spacing.md,
+  },
+  bookStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  bookStatText: {
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.8)',
+    marginLeft: 4,
+  },
+  bookIcon: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  readButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.md,
+  },
+  readButtonText: {
+    ...typography.body2,
+    color: '#FFF',
+    fontWeight: '600',
+    marginRight: spacing.xs,
   },
 });
 

@@ -135,6 +135,97 @@ const wordDictionary: Record<string, {
     translation: '极简主义有助于简化生活。',
     level: '常用',
   },
+  'prince': {
+    phonetic: '/prɪns/',
+    meaning: '王子',
+    example: 'The little prince lived on a small planet.',
+    translation: '小王子住在一颗小行星上。',
+    level: '常用',
+  },
+  'sheep': {
+    phonetic: '/ʃiːp/',
+    meaning: '绵羊',
+    example: 'The prince asked me to draw him a sheep.',
+    translation: '王子让我给他画一只绵羊。',
+    level: 'CET4',
+  },
+  'baobab': {
+    phonetic: '/ˈbeɪoʊbæb/',
+    meaning: '猴面包树',
+    example: 'Baobabs start as small weeds but grow huge.',
+    translation: '猴面包树起初是小杂草，但会长得很大。',
+    level: '常用',
+  },
+  'asteroid': {
+    phonetic: '/ˈæstərɔɪd/',
+    meaning: '小行星',
+    example: 'The little prince came from asteroid B-612.',
+    translation: '小王子来自B-612号小行星。',
+    level: 'CET6',
+  },
+  'planet': {
+    phonetic: '/ˈplænɪt/',
+    meaning: '行星',
+    example: 'His planet was hardly bigger than a house.',
+    translation: '他的行星几乎不比一所房子大。',
+    level: 'CET4',
+  },
+  'sunset': {
+    phonetic: '/ˈsʌnset/',
+    meaning: '日落',
+    example: 'One day I watched the sunset forty-four times.',
+    translation: '有一天我看了四十四次日落。',
+    level: 'CET4',
+  },
+  'tame': {
+    phonetic: '/teɪm/',
+    meaning: '驯养，使温顺',
+    example: 'You must be patient to tame someone.',
+    translation: '驯养一个人必须要有耐心。',
+    level: 'CET6',
+  },
+  'essential': {
+    phonetic: '/ɪˈsenʃl/',
+    meaning: '本质的，重要的',
+    example: 'What is essential is invisible to the eyes.',
+    translation: '真正重要的东西用眼睛是看不见的。',
+    level: 'CET4',
+  },
+  'invisible': {
+    phonetic: '/ɪnˈvɪzəbl/',
+    meaning: '看不见的',
+    example: 'The most beautiful things are invisible.',
+    translation: '最美好的东西是看不见的。',
+    level: 'CET6',
+  },
+  'responsible': {
+    phonetic: '/rɪˈspɑːnsəbl/',
+    meaning: '负责的',
+    example: 'You become responsible for what you tame.',
+    translation: '你要对你驯养的东西负责。',
+    level: 'CET4',
+  },
+  'forever': {
+    phonetic: '/fərˈevər/',
+    meaning: '永远',
+    example: 'The little prince will love his rose forever.',
+    translation: '小王子会永远爱他的玫瑰。',
+    level: 'CET4',
+  },
+  'lonely': {
+    phonetic: '/ˈloʊnli/',
+    meaning: '孤独的',
+    example: 'The king lived alone and felt lonely.',
+    translation: '国王独自生活，感到孤独。',
+    level: 'CET4',
+  },
+  'precious': {
+    phonetic: '/ˈpreʃəs/',
+    meaning: '珍贵的',
+    example: 'Time you waste on your rose makes it precious.',
+    translation: '你在玫瑰上花费的时间使它变得珍贵。',
+    level: 'CET6',
+  },
 };
 
 interface Article {
@@ -150,6 +241,81 @@ interface Article {
 
 // 模拟文章详情数据
 const mockArticleDetails: Record<string, Article & { content: string; translation: string }> = {
+  'prince': {
+    id: 'prince',
+    title: 'The Little Prince',
+    category: '文学',
+    difficulty: 'medium',
+    readTime: 15,
+    wordCount: 1200,
+    imageColor: palette.accent,
+    content: `Once when I was six years old I saw a magnificent picture in a book, called True Stories from Nature, about the primeval forest. It was a picture of a boa constrictor in the act of swallowing an animal. 
+
+In the book it said: "Boa constrictors swallow their prey whole, without chewing it. After that they are not able to move, and they sleep through the six months that they need for digestion."
+
+I pondered deeply, then, over the adventures of the jungle. And after some work with a colored pencil I succeeded in making my first drawing. My Drawing Number One. It looked like this: I showed my masterpiece to the grown-ups, and asked them whether the drawing frightened them.
+
+But they answered: "Frighten? Why should any one be frightened by a hat?"
+
+My drawing was not a picture of a hat. It was a picture of a boa constrictor digesting an elephant. But since the grown-ups were not able to understand it, I made another drawing: I drew the inside of the boa constrictor, so that the grown-ups could see it clearly. They always need to have things explained. My Drawing Number Two looked like this:
+
+The grown-ups' response, this time, was to advise me to lay aside my drawings of boa constrictors, whether from the inside or the outside, and devote myself instead to geography, history, arithmetic and grammar. That is why, at the age of six, I gave up what might have been a magnificent career as a painter. I had been disheartened by the failure of my Drawing Number One and my Drawing Number Two. Grown-ups never understand anything by themselves, and it is tiresome for children to be always and forever explaining things to them.
+
+So then I chose another profession, and learned to pilot airplanes. I have flown a little over all parts of the world; and it is true that geography has been very useful to me. At a glance I can distinguish China from Arizona. If one gets lost in the night, such knowledge is valuable.
+
+In the course of this life I have had a great many encounters with a great many people who have been concerned with matters of consequence. I have lived a lot among the grown-ups. I have seen them intimately, close at hand. And that hasn't much improved my opinion of them.
+
+Whenever I met one of them who seemed to me at all clear-sighted, I tried the experiment of showing him my Drawing Number One, which I have always kept. I would try to find out, so, if this was a person of true understanding. But, whoever it was, he, or she, would always say:
+
+"That is a hat."
+
+Then I would never talk to that person about boa constrictors, or primeval forests, or stars. I would bring myself down to his level. I would talk to him about bridge, and golf, and politics, and neckties. And the grown-up would be greatly pleased to have met such a sensible man.
+
+Thus I lived my life alone, without anyone that I could really talk to, until I had an accident with my plane in the Desert of Sahara, six years ago. Something was broken in my engine. And as I had with me neither a mechanic nor any passengers, I set myself to attempt the difficult repairs all alone. It was a question of life or death for me: I had scarcely enough drinking water to last a week.
+
+The first night, then, I went to sleep on the sand, a thousand miles from any human habitation. I was more isolated than a shipwrecked sailor on a raft in the middle of the ocean. Thus you can imagine my amazement, at sunrise, when I was awakened by an odd little voice. It said:
+
+"If you please-- draw me a sheep!"
+
+"What!"
+
+"Draw me a sheep!"
+
+I jumped to my feet, completely thunderstruck. I blinked my eyes hard. I looked carefully all around me. And I saw a most extraordinary small person, who stood there examining me with great seriousness.`,
+    translation: `当我六岁的时候，在一本名叫《大自然的真实故事》的书里，看见过一幅精彩的插画，画的是原始森林。那是一条蟒蛇正在吞食一只野兽。
+
+书上写着："蟒蛇把猎物整个吞下去，不加咀嚼，然后它们就无法动弹，在长达六个月的睡眠中消化食物。"
+
+于是，我对丛林中的冒险反复思索。在用彩色铅笔做了一些努力之后，我成功地完成了我的第一幅画。我的第一号作品。它是这样的：我把我的杰作拿给大人们看，问他们这幅画是否让他们害怕。
+
+但他们回答说："害怕？为什么有人会害怕一顶帽子呢？"
+
+我画的不是帽子。我画的是一条蟒蛇正在消化一头大象。但是既然大人们无法理解，我又画了另一幅画：我画了蟒蛇的内部，这样大人们就能清楚地看到了。他们总是需要把事情解释清楚。我的第二号作品是这样的：
+
+大人们这次反应是建议我把蟒蛇的画放在一边，不管是内部还是外部的，转而专心学习地理、历史、算术和语法。这就是为什么，在六岁的时候，我放弃了可能成为一名画家的辉煌事业。我的第一号和第二号作品的失败使我灰心丧气。大人们自己从来不懂任何事，而孩子们总是要不断地向他们解释，这真让人厌烦。
+
+于是我选择了另一个职业，学会了驾驶飞机。我飞越了世界各地；确实，地理对我来说非常有用。我一眼就能区分中国和亚利桑那。如果在夜间迷失方向，这样的知识是宝贵的。
+
+在我的一生中，我遇到过很多关心重要事情的人。我在大人中间生活了很久。我近距离地观察过他们。但这并没有改善我对他们的看法。
+
+每当我遇到一个在我看来还算有眼光的人，我就试着给他看我的第一号作品，我一直保留着它。我想借此找出这是否是一个真正理解的人。但是，不管是谁，他或她总是会说：
+
+"那是一顶帽子。"
+
+然后我永远不会和那个人谈论蟒蛇、原始森林或星星。我会把自己降到他的水平。我会和他谈论桥牌、高尔夫、政治和领带。大人会很高兴遇到了这样一个通情达理的人。
+
+就这样，我独自生活，没有一个能真正交谈的人，直到六年前我在撒哈拉沙漠遇到飞机事故。我的发动机某个部件坏了。由于我身边既没有机械师也没有乘客，我开始独自尝试困难的修理工作。这对我来说是生死攸关的问题：我的饮用水只够维持一周。
+
+第一个晚上，我在沙地上睡觉，距离任何人烟都有一千英里。我比海洋中央木筏上的遇难水手更加孤独。因此你可以想象我的惊讶，在日出时，当我被一个奇怪的小声音吵醒时。它说：
+
+"请你——给我画一只绵羊！"
+
+"什么！"
+
+"给我画一只绵羊！"
+
+我跳了起来，完全被震惊了。我使劲眨了眨眼睛。我仔细地环顾四周。然后我看见了一个非常特别的小人儿，站在那里非常认真地打量着我。`,
+  },
   '1': {
     id: '1',
     title: 'The Power of Morning Routines',
@@ -320,7 +486,8 @@ function WordCard({
     }
   }, [visible]);
 
-  const wordData = wordDictionary[word.toLowerCase()];
+  const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+  const wordData = wordDictionary[cleanWord];
 
   const playWordAudio = () => {
     Speech.stop();
@@ -355,11 +522,16 @@ function WordCard({
       isMastered: false,
     };
 
-    const success = await WordStorage.addWord(newWord);
-    if (success) {
-      Alert.alert('成功', '已添加到单词本');
-    } else {
-      Alert.alert('提示', '单词本中已存在该单词');
+    try {
+      const success = await WordStorage.addWord(newWord);
+      if (success) {
+        Alert.alert('成功', '已添加到单词本');
+      } else {
+        Alert.alert('提示', '单词本中已存在该单词');
+      }
+    } catch (error) {
+      console.error('Error adding word to storage:', error);
+      Alert.alert('错误', '添加单词失败');
     }
   };
 
@@ -540,8 +712,16 @@ export default function ArticleDetailScreen() {
   }
 
   const handleWordPress = useCallback((word: string) => {
-    setSelectedWord(word);
-    setShowWordCard(true);
+    // 确保 wordDictionary 中有该单词的数据
+    const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+    const data = wordDictionary[cleanWord];
+
+    if (data) {
+      setSelectedWord(word); // 使用原始单词显示
+      setShowWordCard(true);
+    } else {
+      console.warn(`No dictionary data found for word: ${word}`);
+    }
   }, []);
 
   const getDifficultyLabel = (difficulty: string) => {

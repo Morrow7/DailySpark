@@ -152,10 +152,19 @@ const ChatScreen: React.FC = () => {
     };
   }, []);
 
+  // 消息更新时自动滚动到底部
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
   // 发送消息
-  const sendMessage = async (text?: string) => {
+  const sendMessage = async (text?: string, skipLoadingCheck = false) => {
     const messageText = text || inputText;
-    if (!messageText.trim() || isLoading) return;
+    if (!messageText.trim() || (!skipLoadingCheck && isLoading)) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -177,13 +186,39 @@ const ChatScreen: React.FC = () => {
     try {
       console.log('调用API，当前对话历史:', conversationHistory.current);
       
-      // 调用豆包API
-      const response = await sendChatMessage(
-        conversationHistory.current.map((msg) => ({
-          role: msg.role as 'system' | 'user' | 'assistant',
-          content: msg.content,
-        }))
-      );
+      // TODO: 实际调用豆包API（暂时使用模拟回复测试UI流程）
+      // const response = await sendChatMessage(
+      //   conversationHistory.current.map((msg) => ({
+      //     role: msg.role as 'system' | 'user' | 'assistant',
+      //     content: msg.content,
+      //   }))
+      // );
+      
+      // 模拟API延迟
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // 模拟回复（根据语言模式）
+      const mockResponses = {
+        'en': [
+          "Hello! I'm doing great, thank you for asking. How about you?",
+          "Of course! I'd love to help you practice English. What topic would you like to discuss?",
+          "The weather is quite pleasant today. It's a perfect day for outdoor activities!",
+          "Here's a joke: Why don't scientists trust atoms? Because they make up everything!",
+          "Sure! Let's learn the word 'serendipity' - it means finding something good without looking for it.",
+          "That's a great question! Let me think... I believe the best way to learn is through practice.",
+        ],
+        'zh': [
+          "你好！我很好，谢谢你的关心。你呢？",
+          "当然！我很乐意帮你练习英语。你想聊什么话题？",
+          "今天天气很好，是个适合户外活动的日子！",
+          "给你讲个笑话：为什么程序员总是分不清万圣节和圣诞节？因为 Oct 31 == Dec 25！",
+          "好的！我们来学习单词'apple'，意思是苹果。",
+          "这是个好问题！让我想想... 我认为最好的学习方法是通过练习。",
+        ],
+      };
+      
+      const responses = mockResponses[languageMode];
+      const response = responses[Math.floor(Math.random() * responses.length)];
 
       console.log('收到API响应:', response);
 
@@ -390,16 +425,42 @@ const ChatScreen: React.FC = () => {
     console.log('处理语音输入:', audioUri);
     setIsLoading(true);
     
+    // 模拟语音识别（开发测试用）
+    const mockTranscripts = {
+      'en': [
+        'Hello, how are you today?',
+        'Can you help me practice English?',
+        'What is the weather like?',
+        'Tell me a joke please.',
+        'I want to learn new words.',
+      ],
+      'zh': [
+        '你好，今天天气怎么样？',
+        '我想练习英语口语。',
+        '请帮我介绍一些学习方法。',
+        '告诉我一个英语单词。',
+        '你能帮我翻译这句话吗？',
+      ],
+    };
+    
     try {
-      // 调用豆包语音识别API
-      const { speechToText } = await import('../api/doubao');
-      const transcript = await speechToText(audioUri);
+      // TODO: 实际调用豆包语音识别API
+      // 目前使用模拟数据测试流程
+      // const { speechToText } = await import('../api/doubao');
+      // const transcript = await speechToText(audioUri);
       
-      console.log('语音识别结果:', transcript);
+      // 模拟网络延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 随机选择一个模拟文本
+      const transcripts = mockTranscripts[languageMode];
+      const transcript = transcripts[Math.floor(Math.random() * transcripts.length)];
+      
+      console.log('模拟语音识别结果:', transcript);
       
       if (transcript && transcript.trim()) {
-        // 自动发送识别的内容
-        await sendMessage(transcript);
+        // 自动发送识别的内容（跳过isLoading检查，因为语音识别已经设置了loading）
+        await sendMessage(transcript, true);
       } else {
         Alert.alert(
           languageMode === 'en' ? 'Tips' : '提示',
@@ -777,21 +838,22 @@ const ChatScreen: React.FC = () => {
       <View style={styles.inputContainer}>
         {isVoiceMode ? (
           // 语音模式 - 按住说话按钮
-          {/* 语音输入 */}
           <View style={styles.voiceInputContainer}>
-            <View
+            <TouchableOpacity
+              activeOpacity={0.8}
               style={[
                 styles.voiceButton,
                 isRecordingPressed && styles.voiceButtonPressed
               ]}
-              onTouchStart={() => {
-                console.log('触摸开始 - 开始录音');
+              onPressIn={() => {
+                console.log('PressIn - 开始录音');
                 startRecording();
               }}
-              onTouchEnd={() => {
-                console.log('触摸结束 - 停止录音');
+              onPressOut={() => {
+                console.log('PressOut - 停止录音');
                 handleRecordingStop();
               }}
+              delayPressIn={0}
             >
               <LinearGradient
                 colors={isRecordingPressed ? [palette.error, '#ff6b6b'] : [palette.primary, palette.primaryLight]}
@@ -805,7 +867,7 @@ const ChatScreen: React.FC = () => {
                   color={palette.cloud} 
                 />
               </LinearGradient>
-            </View>
+            </TouchableOpacity>
             <Text style={styles.voiceHint}>
               {isRecordingPressed 
                 ? (languageMode === 'en' ? 'Release to send' : '松开发送')

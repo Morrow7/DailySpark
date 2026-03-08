@@ -10,6 +10,8 @@ export type RootStackParamList = {
   VoiceCall: { contactId?: string; contactName?: string };
   Payment: { amount: number; productName: string; productId: string };
   Login: undefined;
+  LittlePrince: undefined;
+  ChapterDetail: { chapterId: string };
 };
 
 export type MainTabParamList = {
